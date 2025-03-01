@@ -4,7 +4,7 @@
 #include "hardware/dma.h"
 #include "hardware/uart.h"
 #include "mfrc522.h"
-// #include "ws2812.pio.h"
+#include "ws2812.h"
 
 int main()
 {
@@ -15,12 +15,22 @@ int main()
 
     MFRC522Ptr_t mfrc = MFRC522_Init();
     PCD_Init(mfrc, spi0);
-    sleep_ms(100);
+
+    ws2812Init();
+    ws2812SetColor(RED);
+    sleep_ms(500);
+    ws2812SetColor(GREEN);
+    sleep_ms(500);
+    ws2812SetColor(BLUE);
+    sleep_ms(500);
+    ws2812SetColor(WHITE);
+    sleep_ms(500);
 
     while(1)
     {
         //Wait for new card
         printf("Waiting for card\n\r");
+        ws2812SetColor(BLACK);
         while(!PICC_IsNewCardPresent(mfrc));
         //Select the card
         printf("Selecting card\n\r");
@@ -38,8 +48,12 @@ int main()
 
         if(memcmp(mfrc->uid.uidByte, tag1, 4) == 0) {
             printf("Authentication Success\n\r");
+            ws2812SetColor(GREEN);
+            sleep_ms(1000);
         } else {
             printf("Authentication Failed\n\r");
+            ws2812SetColor(RED);
+            sleep_ms(1000);
         }
     }
 }
