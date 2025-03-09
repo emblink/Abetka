@@ -39,6 +39,7 @@ add_executable(Abetka
     mfrc522.c
     Abetka.cpp
     ws2812.c
+    dfplayer.c
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/generated)

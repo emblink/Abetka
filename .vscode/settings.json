@@ -39,6 +39,7 @@
     "files.associations": {
         "mfrc522.h": "c",
         "clocks.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "stdlib.h": "c"
     }
 }

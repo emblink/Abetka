@@ -1692,6 +1692,7 @@ void PICC_DumpDetailsToSerial(Uid *uid ///< Pointer to Uid struct returned from
     PICC_Type piccType = PICC_GetType(uid->sak);
     printf(" PICC type: ");
     printf(PICC_GetTypeName(piccType));
+    printf("\n");
 } // End PICC_DumpDetailsToSerial()
 
 /**
@@ -1940,10 +1941,9 @@ void PICC_DumpMifareUltralightToSerial(MFRC522Ptr_t mfrc) {
     uint8_t buffer[18];
     uint8_t i;
 
-    printf("Page  0  1  2  3\r\n");
+    printf("Print Pages\r\n");
     // Try the mpages of the original Ultralight. Ultralight C has more pages.
-    for (uint8_t page = 0; page < 16;
-        page += 4) { // Read returns data for 4 pages at a time.
+    for (uint8_t page = 0; page < 16; page += 4) { // Read returns data for 4 pages at a time.
         // Read pages
         uint8_tCount = sizeof(buffer);
         status = MIFARE_Read(mfrc, page, buffer, &uint8_tCount);
@@ -1953,25 +1953,11 @@ void PICC_DumpMifareUltralightToSerial(MFRC522Ptr_t mfrc) {
             break;
         }
         // Dump data
-        for (uint8_t offset = 0; offset < 4; offset++) {
-            i = page + offset;
-            if (i < 10)
-                printf("  "); // Pad with spaces
-            else
-                printf(" "); // Pad with spaces
-            sprintf(string, "%u", i);
-            printf(string);
-            printf("  ");
-            for (uint8_t index = 0; index < 4; index++) {
-                i = 4 * offset + index;
-                if (buffer[i] < 0x10)
-                    printf(" 0");
-                else
-                    printf(" ");
-
-                // print the hexa value of a unsigned char
-                sprintf(string, "%02X", (char)buffer[i]);
-                printf(string);
+        for (uint8_t i = 0; i < 4; i++) {
+            printf("%02u:", i + page); // print page number
+            // print the hex values of page content
+            for (int j = i * 4; j < i * 4 + 4; j++) {
+                printf(" 0x%02X", (char) buffer[j]);
             }
             printf("\r\n");
         }
