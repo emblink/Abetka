@@ -40,6 +40,7 @@ add_executable(Abetka
     Abetka.cpp
     ws2812.c
     dfplayer.c
+    st7789.c
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/generated)
@@ -56,11 +57,13 @@ pico_enable_stdio_usb(Abetka 1)
 
 # Add the standard library to the build
 target_link_libraries(Abetka
-        pico_stdlib)
+        pico_stdlib
+        lvgl)
 
 # Add the standard include files to the build
 target_include_directories(Abetka PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
+        lvgl
 )
 
 # Add any user requested libraries
@@ -72,3 +75,5 @@ target_link_libraries(Abetka
 
 pico_add_extra_outputs(Abetka)
 
+set(LV_CONF_INCLUDE_SIMPLE OFF)
+add_subdirectory(lvgl)

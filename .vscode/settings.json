@@ -40,6 +40,12 @@
         "mfrc522.h": "c",
         "clocks.h": "c",
         "stdio.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "st7789.h": "c",
+        "spi.h": "c",
+        "array": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "span": "cpp"
     }
 }
