@@ -3,6 +3,7 @@
 #include "hardware/spi.h"
 #include "hardware/dma.h"
 #include "hardware/uart.h"
+#include "hardware/timer.h"
 #include "mfrc522.h"
 #include "ws2812.h"
 #include "dfplayer.h"
@@ -198,6 +199,67 @@ void processReadMode()
     }
 }
 
+#define BUTTON_GPIO 21
+#define DEBOUNCE_SAMPLES 80
+#define PRESSED_THRESHOLD (DEBOUNCE_SAMPLES / 2)
+#define TIMER_INTERVAL_US 100
+static volatile bool currentState = false; // true - pressed, false - released 
+static volatile uint32_t debounceSamples = 0;
+static volatile int32_t averageStateValue = 0;
+static volatile bool processButtonChange = false;
+static volatile bool debounceTimerActive = false;
+static repeating_timer_t debounceTimer;
+
+bool buttonTimerCallback(repeating_timer_t *t) {
+    debounceSamples++;
+    averageStateValue += (false == gpio_get(BUTTON_GPIO)) ? 1 : -1; // low is pressed
+
+    if (debounceSamples >= DEBOUNCE_SAMPLES) {
+        bool newState = false;
+        if (averageStateValue >= PRESSED_THRESHOLD) {
+            newState = true;
+        }
+
+        if (newState != currentState) {
+            currentState = newState;
+            processButtonChange = true;
+        }
+
+        debounceSamples = 0;
+        averageStateValue = 0;
+        cancel_repeating_timer(&debounceTimer);
+        debounceTimerActive = false;
+    }
+
+    return debounceTimerActive;  // keep the timer active until explicitly canceled
+}
+
+void gpio_irq_handler(uint gpio, uint32_t events) {
+    if (!debounceTimerActive) {
+        debounceTimerActive = true;
+        debounceSamples = 0;
+        averageStateValue = 0;
+        add_repeating_timer_us(-TIMER_INTERVAL_US, buttonTimerCallback, NULL, &debounceTimer);
+    }
+}
+
+void processInput()
+{
+    if (processButtonChange) {
+        processButtonChange = false;
+        if (currentState) {
+            static bool toggle = false;
+            if (toggle) {
+                ws2812SetColor(GREEN);
+            } else {
+                ws2812SetColor(RED);
+            }
+            toggle = !toggle;
+        }
+        printf("Button %s\n", currentState ? "PRESSED" : "RELEASED");
+    }
+}
+
 int main()
 {
     stdio_init_all();
@@ -205,6 +267,11 @@ int main()
     gpio_init(USER_BTN);
     gpio_set_dir(USER_BTN, GPIO_IN);
     gpio_pull_up(USER_BTN);
+
+    gpio_init(BUTTON_GPIO);
+    gpio_set_dir(BUTTON_GPIO, GPIO_IN);
+    gpio_pull_up(BUTTON_GPIO);
+    gpio_set_irq_enabled_with_callback(BUTTON_GPIO,  GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, gpio_irq_handler);
 
     while (isUsrBntPressed()); // detected as 0 at startup
 
@@ -249,6 +316,7 @@ int main()
 
     while(1)
     {
+        processInput();
         processReadMode();
         lv_timer_handler();
         sleep_ms(40);
