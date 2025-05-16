@@ -82,9 +82,10 @@ void lv_example_hello(void)
 
     /*Create a white label, set its text and align it to the center*/
     lv_obj_t * label = lv_label_create(lv_screen_active());
-    lv_label_set_text(label, "ABETKA");
+    lv_label_set_text(label, "Абетка\nРомана");
+    lv_obj_set_style_text_font(label, &lv_font_ukrainian_48, LV_PART_MAIN);
     lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0xffffff), LV_PART_MAIN);
-    lv_obj_set_style_text_font(label, &lv_font_montserrat_48, LV_PART_MAIN);
+    // lv_obj_set_style_text_font(label, &lv_font_montserrat_48, LV_PART_MAIN);
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
 }
 

@@ -41,6 +41,7 @@ add_executable(Abetka
     ws2812.c
     dfplayer.c
     st7789.c
+    lv_font_ukrainian_48.c
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/generated)
