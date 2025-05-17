@@ -27,22 +27,24 @@
 #define ST7789_SPI      spi1
 
 typedef enum {
-    LANGUAGE_ID_UA = 0x01,
+    LANGUGAGE_ID_INVALID = 0x00,
+    LANGUAGE_ID_UA,
     LANGUAGE_ID_EN,
 } LanguageId;
 
 typedef enum {
-    NUMBER_ID_0 = 0x00,
-    NUMBER_ID_1 = 0x01,
-    NUMBER_ID_2 = 0x02,
-    NUMBER_ID_3 = 0x03,
-    NUMBER_ID_4 = 0x04,
-    NUMBER_ID_5 = 0x05,
-    NUMBER_ID_6 = 0x06,
-    NUMBER_ID_7 = 0x07,
-    NUMBER_ID_8 = 0x08,
-    NUMBER_ID_9 = 0x09,
-} NumberId;
+    UA_NUMBER_ID_0 = 0x00,
+    UA_NUMBER_ID_9 = UA_NUMBER_ID_0 + 9,
+    UA_ID_FIRST, // А
+    UA_ID_LAST = UA_ID_FIRST + 33 - 1,
+} UAId;
+
+typedef enum {
+    EN_NUMBER_ID_0 = 0x00,
+    EN_NUMBER_ID_9 = EN_NUMBER_ID_0 + 9,
+    EN_ID_FIRST, // А
+    EN_ID_LAST = EN_ID_FIRST + 26 - 1,
+} ENId;
 
 typedef union {
     struct {
@@ -54,6 +56,7 @@ typedef union {
 
 static MFRC522Ptr_t mfrc = NULL;
 static dfplayer_t dfplayer = {0};
+static bool cardPresent = false;
 
 // lcd configuration
 static const struct st7789_config lcd_config = {
@@ -70,9 +73,9 @@ static const int lcd_height = 240;
 static uint16_t frameBuff[lcd_width * lcd_height] = {0};
 static lv_display_t * display = NULL;
 
-static bool isUsrBntPressed()
+static bool isBntPressed(uint gpio)
 {
-    bool isPressed = false == gpio_get(USER_BTN);
+    bool isPressed = false == gpio_get(gpio);
     return isPressed;
 }
 
@@ -152,13 +155,13 @@ void processMifareWriteMode()
         return;
     }
 
-    uint8_t writeBuff[16] = {0};
-    CardData * cardData = (CardData *) writeBuff;
-    cardData->langId = LANGUAGE_ID_UA;
-    cardData->symbol = 9 + 1; // 0 - 9 numbers, + 1 is letter A
-    StatusCode res = MIFARE_Write(mfrc, CARD_DATA_PAGE, writeBuff, 16);
+    PICC_ReadCardSerial(mfrc);
+    CardData cardData = {0};
+    cardData.langId = LANGUAGE_ID_UA;
+    cardData.symbol = UA_ID_FIRST + 1;
+    StatusCode res = MIFARE_Write(mfrc, CARD_DATA_PAGE, cardData.rawData, 16);
     if (STATUS_OK == res) {
-        dfplayer_play(&dfplayer, 2);
+        // dfplayer_play(&dfplayer, 2);
         printf("Page Write UA A\n");
         ws2812SetColor(GREEN);
     } else {
@@ -170,11 +173,20 @@ void processMifareWriteMode()
 
 void processReadMode()
 {
-    if (!isMifareInProximity())
-    {
+    // TODO: fix card presence toggling
+    bool isClose = isMifareInProximity();
+
+    if (isClose) {
+        // It was already read one time, skip
+        if (cardPresent) {
+            return;
+        }
+    } else {
+        // No card to read, skip
+        cardPresent = false;
         return;
     }
-    
+
     // TODO: read language and letter
     // TODO: play letter sound
     CardData cardData = {0};
@@ -185,15 +197,20 @@ void processReadMode()
         ws2812SetColor(RED);
         return;
     }
-
+    
+    cardPresent = true;
     if (LANGUAGE_ID_UA == cardData.langId) {
         printf("This is UA symbol: %u\n", cardData.symbol);
-        if (10 == cardData.symbol) {
-            dfplayer_play(&dfplayer, 1); // letter A
+        if (cardData.symbol >= UA_ID_FIRST && cardData.symbol <= UA_ID_LAST) {
+            dfplayer_play_folder(&dfplayer, cardData.langId, cardData.symbol - UA_ID_FIRST + 1); // offset 1 cause player track names starts with 001
             ws2812SetColor(GREEN);
         }
     } else if (LANGUAGE_ID_EN == cardData.langId) {
-        ws2812SetColor(RED);
+        printf("This is EN symbol: %u\n", cardData.symbol);
+        if (cardData.symbol >= EN_ID_FIRST && cardData.symbol <= EN_ID_LAST) {
+            dfplayer_play_folder(&dfplayer, cardData.langId, cardData.symbol - EN_ID_FIRST + 1); // offset 1 cause player track names starts with 001
+            ws2812SetColor(GREEN);
+        }
     } else {
         ws2812SetColor(RED);
     }
@@ -273,8 +290,6 @@ int main()
     gpio_pull_up(BUTTON_GPIO);
     gpio_set_irq_enabled_with_callback(BUTTON_GPIO,  GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, gpio_irq_handler);
 
-    while (isUsrBntPressed()); // detected as 0 at startup
-
     // TODO: figure out how to utilize lvgl st7789 driver instead of custom one.
     st7789_init(&lcd_config, lcd_width, lcd_height);
     st7789_fill(0xFFFF);
@@ -298,26 +313,29 @@ int main()
     sleep_ms(10);
     dfplayer_set_playback_mode(&dfplayer, MODE_FOLDER_REPEAT);
     sleep_ms(200);
-    dfplayer_play(&dfplayer, 2);
+    // dfplayer_play(&dfplayer, 2);
 
-    int pressedMs = 0;
-    while (isUsrBntPressed() && pressedMs < 1000) {
-        pressedMs++;
+    int holdMs = 0;
+    bool writeMode = false;
+    while (isBntPressed(BUTTON_GPIO) && holdMs < 1000) {
+        holdMs++;
         sleep_ms(1);
         // Enter card write mode
-        if (pressedMs >= 1000) {
-            while (1)
-            {
-                processMifareWriteMode(); // no exit from this state
-                sleep_ms(500);
-            }
+        if (holdMs >= 1000) {
+            writeMode = true;
         }
     }
 
     while(1)
     {
         processInput();
-        processReadMode();
+        // TODO: add indication module
+        // TODO: handle input in all states
+        if (writeMode) {
+            processMifareWriteMode(); // no exit from this state
+        } else {
+            processReadMode();
+        }
         lv_timer_handler();
         sleep_ms(40);
     }

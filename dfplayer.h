@@ -113,6 +113,7 @@ extern "C" {
  */
 #define QUERY_NUM_SD_TRACKS 0x47
 
+#define CMD_PLAY_FOLDER_FILE 0x0F
 /**
  * @}
  */
@@ -364,6 +365,14 @@ void dfplayer_resume(dfplayer_t *dfplayer);
  */
 void dfplayer_pause(dfplayer_t *dfplayer);
 
+/**
+ * @brief Plays a specific track from a specific folder.
+ *
+ * @param dfplayer The DFPlayer instance.
+ * @param folder The folder number (1–99).
+ * @param track The track number within the folder (1–255).
+ */
+void dfplayer_play_folder(dfplayer_t *dfplayer, uint8_t folder, uint8_t track);
 /**
  * @}
  */
