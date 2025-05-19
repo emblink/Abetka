@@ -30,6 +30,12 @@ include(pico_sdk_import.cmake)
 
 project(Abetka C CXX ASM)
 
+# Set debug build type
+set(CMAKE_BUILD_TYPE Debug)
+
+# Use deoptimized debug mode
+set(PICO_DEOPTIMIZED_DEBUG 1)
+
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
@@ -42,6 +48,12 @@ add_executable(Abetka
     dfplayer.c
     st7789.c
     lv_font_ukrainian_48.c
+    appMode.c
+    appModeIdle.c
+    appModeRead.c
+    appModeWrite.c
+    mifareHal.c
+    keyScan.c
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/generated)
@@ -51,7 +63,6 @@ pico_generate_pio_header(Abetka ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio OUTPUT_DIR 
 
 pico_set_program_name(Abetka "Abetka")
 pico_set_program_version(Abetka "0.1")
-
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(Abetka 0)
 pico_enable_stdio_usb(Abetka 1)
@@ -66,6 +77,8 @@ target_include_directories(Abetka PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
         lvgl
 )
+
+target_compile_options(Abetka PRIVATE -O0 -g)
 
 # Add any user requested libraries
 target_link_libraries(Abetka 

@@ -47,6 +47,12 @@
         "string": "cpp",
         "string_view": "cpp",
         "span": "cpp",
-        "dfplayer.h": "c"
+        "dfplayer.h": "c",
+        "appmodewrite.h": "c",
+        "ws2812.h": "c",
+        "appmoderead.h": "c",
+        "appmode.h": "c",
+        "carddata.h": "c",
+        "mifarehal.h": "c"
     }
 }
