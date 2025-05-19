@@ -73,7 +73,9 @@ void lv_example_hello(void)
 
 static void processInput(Key key, KeyState event)
 {
-
+    if (KEY_LEFT == key && KEY_STATE_PRESSED == event) {
+        appModeSwitch(APP_MODE_READ_CARD);
+    }
 }
 
 void appModeIdleEnter()
@@ -85,23 +87,9 @@ void appModeIdleEnter()
     lv_example_hello();
 }
 
-// int holdMs = 0;
-// AppMode appMode = appModeGetCurrent();
-// while (isBntPressed(BUTTON_GPIO) && holdMs < 1000) {
-//     holdMs++;
-//     sleep_ms(1);
-//     // Enter card write mode
-//     if (holdMs >= 1000) {
-//         appMode = APP_MODE_WRITE_CARD;
-//     }
-// }
-
 void appModeIdleProcess()
 {
     // TODO: play animation
-    // TODO: switch to read mode on any input
-    // TODO: switch to write mode if the LEFT key is held for 1 sec
-    appModeSwitch(APP_MODE_READ_CARD);
 }
 
 void appModeIdleExit()

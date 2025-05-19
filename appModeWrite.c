@@ -7,6 +7,8 @@
 #include "dfplayer.h"
 #include "lvgl.h"
 #include "keyScan.h"
+#include "appMode.h"
+#include "lvgl.h"
 
 extern dfplayer_t dfplayer;
 
@@ -129,10 +131,30 @@ static void showWriteStatus(bool success)
     clearStatusTimer = lv_timer_create(clearStatusCircle_cb, STATUS_TIMEOUT_MS, NULL);
 }
 
-
-static void processInput(Key key, KeyState state)
+static void processInput(Key key, KeyState event)
 {
+    if (KEY_LEFT == key && KEY_STATE_PRESSED == event) {
+        currentSymbolIdx++;
+        if (currentSymbolIdx >= UA_LETTER_COUNT) {
+            currentSymbolIdx = 0;
+        }
+        updateSymbolDisplay();
+    } else if (KEY_LEFT == key && KEY_STATE_HOLD == event) {
+        appModeSwitch(APP_MODE_READ_CARD);
+    }
+}
 
+static void guiInit(void)
+{
+    /*Change the active screen's background color*/
+    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x003a57), LV_PART_MAIN);
+
+    /*Create a white label, set its text and align it to the center*/
+    lv_obj_t * label = lv_label_create(lv_screen_active());
+    lv_label_set_text(label, "Write mode");
+    lv_obj_set_style_text_font(label, &lv_font_montserrat_14, LV_PART_MAIN);
+    lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0xffffff), LV_PART_MAIN);
+    lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
 }
 
 void appModeWriteEnter()
@@ -142,6 +164,7 @@ void appModeWriteEnter()
     currentSymbolIdx = 0;
 
     set_black_background();
+    ws2812SetColor(BLUE);
 
     if (labelSymbol) {
         lv_obj_del(labelSymbol);
@@ -152,6 +175,7 @@ void appModeWriteEnter()
         lv_obj_del(statusCircle);
         statusCircle = NULL;
     }
+    guiInit();
 
     updateSymbolDisplay();
 }

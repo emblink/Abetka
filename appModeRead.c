@@ -5,8 +5,9 @@
 #include "dfplayer.h"
 #include "mifareHal.h"
 #include "keyScan.h"
+#include "appMode.h"
+#include "lvgl.h"
 
-static bool cardPresent = false;
 extern dfplayer_t dfplayer;
 
 static void processInput(Key key, KeyState event)
@@ -21,36 +22,40 @@ static void processInput(Key key, KeyState event)
             }
             toggle = !toggle;
         } else if (KEY_STATE_HOLD == event) {
-            ws2812SetColor(BLUE);
+            appModeSwitch(APP_MODE_WRITE_CARD);
         } else if (KEY_STATE_LONG_HOLD == event) {
             ws2812SetColor(WHITE);
         }
     }
 }
 
+static void guiInit(void)
+{
+    /*Change the active screen's background color*/
+    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x003a57), LV_PART_MAIN);
+
+    /*Create a white label, set its text and align it to the center*/
+    lv_obj_t * label = lv_label_create(lv_screen_active());
+    lv_label_set_text(label, "Read mode");
+    lv_obj_set_style_text_font(label, &lv_font_montserrat_14, LV_PART_MAIN);
+    lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0xffffff), LV_PART_MAIN);
+    lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
+}
+
 void appModeReadEnter()
 {
     keyScanInit(processInput);
+    ws2812SetColor(GREEN);
+    guiInit();
 }
 
 void appModeReadProcess()
 {
-    // TODO: fix card presence toggling
-    bool isClose = mifareIsInProximity();
-
-    if (isClose) {
-        // It was already read one time, skip
-        if (cardPresent) {
-            return;
-        }
-    } else {
-        // No card to read, skip
-        cardPresent = false;
+    bool isPresent = mifareIsInProximity();
+    if (!isPresent) {
         return;
     }
 
-    // TODO: read language and letter
-    // TODO: play letter sound
     CardData cardData = {0};
     bool res = mifareReadData(cardData.rawData);
     if (!res)
@@ -59,8 +64,7 @@ void appModeReadProcess()
         ws2812SetColor(RED);
         return;
     }
-    
-    cardPresent = true;
+
     if (LANGUAGE_ID_UA == cardData.langId) {
         printf("This is UA symbol: %u\n", cardData.symbol);
         if (cardData.symbol >= UA_ID_FIRST && cardData.symbol <= UA_ID_LAST) {

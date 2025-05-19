@@ -47,6 +47,7 @@ void appModeSwitch(AppMode newMode)
             break;
     }
 
+    lv_obj_clean(lv_scr_act());
     appMode = newMode;
 
     switch (newMode) {

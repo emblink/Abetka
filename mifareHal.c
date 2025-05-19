@@ -30,6 +30,7 @@ bool mifareReadData(uint8_t *readBuff)
                     readBuff[i + 2], readBuff[i+ 3]);
             page++;
         }
+        PICC_HaltA(mfrc);
     }
 
     return STATUS_OK == res;
