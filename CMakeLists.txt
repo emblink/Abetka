@@ -54,6 +54,7 @@ add_executable(Abetka
     appModeWrite.c
     mifareHal.c
     keyScan.c
+    uaSymbol.c
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/generated)
