@@ -55,6 +55,7 @@ add_executable(Abetka
     mifareHal.c
     keyScan.c
     uaSymbol.c
+    battery.c
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/generated)
@@ -86,6 +87,7 @@ target_link_libraries(Abetka
         hardware_spi
         hardware_dma
         hardware_pio
+        hardware_adc
         )
 
 pico_add_extra_outputs(Abetka)

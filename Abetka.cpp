@@ -10,6 +10,7 @@
 #include "appMode.h"
 #include "mifareHal.h"
 #include "keyScan.h"
+#include "battery.h"
 
 // How to build without optimizations
 // cmake -DCMAKE_BUILD_TYPE=Debug -DPICO_DEOPTIMIZED_DEBUG=1 ..
@@ -23,6 +24,8 @@
 #define GPIO_RX         9       // To TX on the player
 #define DFPLAYER_UART   uart1
 #define ST7789_SPI      spi1
+
+#define BATTERY_CHECK_PERIOD_MS (60 * 1000)
 
 dfplayer_t dfplayer = {0};
 
@@ -40,6 +43,8 @@ static const int lcd_width = 240;
 static const int lcd_height = 240;
 static uint16_t frameBuff[lcd_width * lcd_height] = {0};
 static lv_display_t * display = NULL;
+static uint32_t lastBatteryCheckMs = 0;
+static int32_t batteryPercent = 0;
 
 static bool isBntPressed(uint gpio)
 {
@@ -68,8 +73,20 @@ void display_flush_cb(lv_display_t * display, const lv_area_t * area, uint8_t * 
 }
 
 // Millisecond timestamp — you need this for `lv_tick_inc`
-uint32_t getTimeMs(void) {
+static uint32_t getTimeMs(void) {
     return to_ms_since_boot(get_absolute_time());
+}
+
+void batteryProcess()
+{
+    if (getTimeMs() - lastBatteryCheckMs < BATTERY_CHECK_PERIOD_MS) {
+        return;
+    }
+
+    batteryPercent = batteryGetPercent();
+    if (batteryPercent <= 0) {
+        appModeSwitch(APP_MODE_DISCHARGED);
+    }
 }
 
 int main()
@@ -99,11 +116,18 @@ int main()
     sleep_ms(200);
     // dfplayer_play(&dfplayer, 2);
 
-    appModeSwitch(APP_MODE_IDLE);
+    batteryInit();
+    batteryPercent = batteryGetPercent();
+    if (batteryPercent <= 0) {
+        appModeSwitch(APP_MODE_DISCHARGED);
+    } else {
+        appModeSwitch(APP_MODE_IDLE);
+    }
 
     while(1)
     {
         keyScanProcess();
+        batteryProcess();
         // TODO: add indication module
         // TODO: handle input in all states
         appModeProcess();

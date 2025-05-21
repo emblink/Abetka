@@ -53,6 +53,9 @@
         "appmoderead.h": "c",
         "appmode.h": "c",
         "carddata.h": "c",
-        "mifarehal.h": "c"
+        "mifarehal.h": "c",
+        "battery.h": "c",
+        "gpio.h": "c",
+        "adc.h": "c"
     }
 }
