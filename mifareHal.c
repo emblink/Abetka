@@ -40,6 +40,6 @@ bool mifareWriteData(uint8_t *writeBuff)
 {
     PICC_ReadCardSerial(mfrc);
     StatusCode res = MIFARE_Write(mfrc, CARD_DATA_PAGE, writeBuff, 16);
-
+    PICC_HaltA(mfrc);
     return STATUS_OK == res;
 }
