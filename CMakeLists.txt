@@ -42,26 +42,26 @@ pico_sdk_init()
 # Add executable. Default name is the project name, version 0.1
 
 add_executable(Abetka
-    mfrc522.c
-    Abetka.cpp
-    ws2812.c
-    dfplayer.c
-    st7789.c
-    lv_font_ukrainian_48.c
-    appMode.c
-    appModeIdle.c
-    appModeRead.c
-    appModeWrite.c
-    mifareHal.c
-    keyScan.c
-    uaSymbol.c
-    battery.c
+    src/mfrc522.c
+    src/Abetka.cpp
+    src/ws2812.c
+    src/dfplayer.c
+    src/st7789.c
+    src/lv_font_ukrainian_48.c
+    src/appMode.c
+    src/appModeIdle.c
+    src/appModeRead.c
+    src/appModeWrite.c
+    src/mifareHal.c
+    src/keyScan.c
+    src/uaSymbol.c
+    src/battery.c
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/generated)
 
 # generate the header file into the source tree as it is included in the RP2040 datasheet
-pico_generate_pio_header(Abetka ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/generated)
+pico_generate_pio_header(Abetka ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/generated)
 
 pico_set_program_name(Abetka "Abetka")
 pico_set_program_version(Abetka "0.1")
@@ -72,12 +72,15 @@ pico_enable_stdio_usb(Abetka 1)
 # Add the standard library to the build
 target_link_libraries(Abetka
         pico_stdlib
-        lvgl)
+        lvgl
+        no-OS-FatFS-SD-SDIO-SPI-RPi-Pico
+)
 
 # Add the standard include files to the build
 target_include_directories(Abetka PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
         lvgl
+        src
 )
 
 target_compile_options(Abetka PRIVATE -O0 -g)
@@ -93,4 +96,5 @@ target_link_libraries(Abetka
 pico_add_extra_outputs(Abetka)
 
 set(LV_CONF_INCLUDE_SIMPLE OFF)
-add_subdirectory(lvgl)
+add_subdirectory(lib/lvgl)
+add_subdirectory(lib/no-OS-FatFS-SD-SDIO-SPI-RPi-Pico/src)
