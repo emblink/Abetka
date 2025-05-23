@@ -216,7 +216,7 @@ typedef struct {
  * @param buffer The buffer to calculate the checksum for.
  * @return The calculated checksum.
  */
-int16_t calculate_checksum(uint8_t *buffer);
+// O.T causes conflict and compile errors int16_t calculate_checksum(uint8_t *buffer);
 
 /**
  * @brief Enables or disables the transmission of checksums.

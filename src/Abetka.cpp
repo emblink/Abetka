@@ -12,7 +12,7 @@
 #include "keyScan.h"
 #include "battery.h"
 #include <tusb.h>
-#include "tusb_config.h"
+#include "usb_mass_storage/tusb_config.h"
 
 // How to build without optimizations
 // cmake -DCMAKE_BUILD_TYPE=Debug -DPICO_DEOPTIMIZED_DEBUG=1 ..
@@ -91,8 +91,49 @@ void batteryProcess()
     }
 }
 
+#include "hw_config.h"
+#include "f_util.h"
+#include "ff.h"
+
+void sdCardTest()
+{
+    puts("Hello, world!");
+
+    // See FatFs - Generic FAT Filesystem Module, "Application Interface",
+    // http://elm-chan.org/fsw/ff/00index_e.html
+    FATFS fs;
+    FRESULT fr = f_mount(&fs, "", 1);
+    if (FR_OK != fr) {
+        panic("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
+    }
+
+    // Open a file and write to it
+    FIL fil;
+    const char* const filename = "filename.txt";
+    fr = f_open(&fil, filename, FA_OPEN_APPEND | FA_WRITE);
+    if (FR_OK != fr && FR_EXIST != fr) {
+        panic("f_open(%s) error: %s (%d)\n", filename, FRESULT_str(fr), fr);
+    }
+    if (f_printf(&fil, "Hello, world!\n") < 0) {
+        printf("f_printf failed\n");
+    }
+
+    // Close the file
+    fr = f_close(&fil);
+    if (FR_OK != fr) {
+        printf("f_close error: %s (%d)\n", FRESULT_str(fr), fr);
+    }
+
+    // Unmount the SD card
+    f_unmount("");
+
+    puts("Goodbye, world!");
+}
+
 int main()
 {
+    // sdCardTest();
+    tud_init(BOARD_TUD_RHPORT); // should be called before the stdio_init_all()
     stdio_init_all();
 
     // TODO: O.T figure out how to utilize lvgl st7789 driver instead of custom one.
@@ -126,8 +167,8 @@ int main()
         appModeSwitch(APP_MODE_IDLE);
     }
 
-    tud_init(0);
     // TODO: O.T add indication module
+    // TODO: O.T remove dfplayer, add I2S pio driver, play music from SD card to MAX98357A
 
     while(1)
     {
@@ -136,6 +177,7 @@ int main()
         appModeProcess();
         tud_task();
         lv_timer_handler();
-        sleep_ms(40);
+        // TODO: O.T Add power detect, sleep cases USB enumeration to fail
+        // sleep_ms(40);
     }
 }

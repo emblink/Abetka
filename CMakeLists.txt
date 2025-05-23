@@ -56,6 +56,9 @@ add_executable(Abetka
     src/keyScan.c
     src/uaSymbol.c
     src/battery.c
+    usb_mass_storage/hw_config.c
+    usb_mass_storage/msc_disk.c
+    usb_mass_storage/usb_descriptors.c
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/generated)
@@ -81,6 +84,7 @@ target_include_directories(Abetka PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
         lvgl
         src
+        usb_mass_storage
 )
 
 target_compile_options(Abetka PRIVATE -O0 -g)
@@ -91,6 +95,9 @@ target_link_libraries(Abetka
         hardware_dma
         hardware_pio
         hardware_adc
+        tinyusb_additions
+        tinyusb_board
+        tinyusb_device
         )
 
 pico_add_extra_outputs(Abetka)

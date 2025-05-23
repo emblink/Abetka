@@ -56,6 +56,9 @@
         "mifarehal.h": "c",
         "battery.h": "c",
         "gpio.h": "c",
-        "adc.h": "c"
+        "adc.h": "c",
+        "hw_config.h": "c",
+        "sd_card.h": "c",
+        "tusb.h": "c"
     }
 }
