@@ -1,0 +1,38 @@
+;=====  mono ====== 
+; 4 pio clock cycles for 1 bit
+.program i2s_pio_dma_mono
+.side_set 2
+loop1:
+out pins, 1 side 0b00 [1]
+jmp x--, loop1 side 0b01 [1]
+out pins, 1 side 0b10
+mov osr, isr side 0b10   ;isr as scratch register, the same output for right channel
+
+mov x, y side 0b11 [1]
+loop2:
+out pins, 1  side 0b10 [1]
+jmp x--, loop2 side 0b11 [1]
+out pins, 1  side 0b00
+
+public entry_point_m:
+pull side 0b00
+mov isr, osr side 0b01
+mov x,y side 0b01
+
+;=====  stereo ====== 
+; 2 pio clock cycles for 1 bit
+.program i2s_pio_dma_stereo
+.side_set 2
+loop1:
+out pins, 1 side 0b00
+jmp x--, loop1 side 0b01
+out pins, 1 side 0b10
+
+mov x, y side 0b11
+loop2:
+out pins, 1 side 0b10
+jmp x--, loop2 side 0b11
+out pins, 1  side 0b00
+
+public entry_point_s:
+mov x,y side 0b01

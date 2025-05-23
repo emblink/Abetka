@@ -4,14 +4,11 @@
 #include "cardData.h"
 #include "mifareHal.h"
 #include "ws2812.h"
-#include "dfplayer.h"
 #include "lvgl.h"
 #include "keyScan.h"
 #include "appMode.h"
 #include "lvgl.h"
 #include "uaSymbol.h"
-
-extern dfplayer_t dfplayer;
 
 static LanguageId currentLanguage = LANGUAGE_ID_UA;
 static uint16_t currentSymbolIdx = 0;

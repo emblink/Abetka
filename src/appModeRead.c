@@ -2,14 +2,12 @@
 #include "cardData.h"
 #include "mfrc522.h"
 #include "ws2812.h"
-#include "dfplayer.h"
 #include "mifareHal.h"
 #include "keyScan.h"
 #include "appMode.h"
 #include "lvgl.h"
 #include "uaSymbol.h"
 
-extern dfplayer_t dfplayer;
 static CardData cardData = {.langId = LANGUGAGE_ID_INVALID};
 static lv_obj_t *labelSymbol = NULL;
 
@@ -34,7 +32,7 @@ static void processInput(Key key, KeyState event)
     if (KEY_LEFT == key) {
         if (KEY_STATE_PRESSED == event) {
             if (cardData.langId != LANGUGAGE_ID_INVALID) {
-                dfplayer_play_folder(&dfplayer, 3, cardData.symbol - UA_ID_FIRST + 1);
+                // dfplayer_play_folder(&dfplayer, 3, cardData.symbol - UA_ID_FIRST + 1);
             }
         } else if (KEY_STATE_HOLD == event) {
             appModeSwitch(APP_MODE_WRITE_CARD);
@@ -91,14 +89,14 @@ void appModeReadProcess()
     if (LANGUAGE_ID_UA == cardData.langId) {
         printf("This is UA symbol: %u\n", cardData.symbol);
         if (cardData.symbol >= UA_ID_FIRST && cardData.symbol <= UA_ID_LAST) {
-            dfplayer_play_folder(&dfplayer, cardData.langId, cardData.symbol - UA_ID_FIRST + 1); // offset 1 cause player track names starts with 001
+            // dfplayer_play_folder(&dfplayer, cardData.langId, cardData.symbol - UA_ID_FIRST + 1); // offset 1 cause player track names starts with 001
             ws2812SetColor(GREEN);
             updateUASymbolOnDisplay();
         }
     } else if (LANGUAGE_ID_EN == cardData.langId) {
         printf("This is EN symbol: %u\n", cardData.symbol);
         if (cardData.symbol >= EN_ID_FIRST && cardData.symbol <= EN_ID_LAST) {
-            dfplayer_play_folder(&dfplayer, cardData.langId, cardData.symbol - EN_ID_FIRST + 1); // offset 1 cause player track names starts with 001
+            // dfplayer_play_folder(&dfplayer, cardData.langId, cardData.symbol - EN_ID_FIRST + 1); // offset 1 cause player track names starts with 001
             ws2812SetColor(GREEN);
         }
     } else {

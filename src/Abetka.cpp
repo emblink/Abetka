@@ -4,7 +4,6 @@
 #include "hardware/dma.h"
 #include "hardware/uart.h"
 #include "ws2812.h"
-#include "dfplayer.h"
 #include "lvgl.h"
 #include "st7789.h"
 #include "appMode.h"
@@ -13,6 +12,7 @@
 #include "battery.h"
 #include <tusb.h>
 #include "usb_mass_storage/tusb_config.h"
+#include "sdAudio.h"
 
 // How to build without optimizations
 // cmake -DCMAKE_BUILD_TYPE=Debug -DPICO_DEOPTIMIZED_DEBUG=1 ..
@@ -28,8 +28,6 @@
 #define ST7789_SPI      spi1
 
 #define BATTERY_CHECK_PERIOD_MS (60 * 1000)
-
-dfplayer_t dfplayer = {0};
 
 // lcd configuration
 static const struct st7789_config lcd_config = {
@@ -149,15 +147,7 @@ int main()
 
     ws2812Init();
 
-    dfplayer_init(&dfplayer, DFPLAYER_UART, GPIO_TX, GPIO_RX);
-    sleep_ms(10);
-    dfplayer_set_volume(&dfplayer, 30);
-    sleep_ms(10);
-    dfplayer_set_eq(&dfplayer, EQ_BASS);
-    sleep_ms(10);
-    dfplayer_set_playback_mode(&dfplayer, MODE_FOLDER_REPEAT);
-    sleep_ms(200);
-    // dfplayer_play(&dfplayer, 2);
+    sdAudioTest();
 
     batteryInit();
     batteryPercent = batteryGetPercent();
@@ -167,8 +157,11 @@ int main()
         appModeSwitch(APP_MODE_IDLE);
     }
 
-    // TODO: O.T add indication module
-    // TODO: O.T remove dfplayer, add I2S pio driver, play music from SD card to MAX98357A
+    // TODO: O.T. Implement indication module (e.g. LED or screen feedback)
+    // TODO: O.T. Define JSON-based folder and asset mapping structure
+    // TODO: O.T. Implement audio playback module for letter and word sounds
+    // TODO: O.T. Add multiple example words for each letter
+    // TODO: O.T. Add images and display them alongside words using LVGL
 
     while(1)
     {
