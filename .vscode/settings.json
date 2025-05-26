@@ -59,6 +59,11 @@
         "adc.h": "c",
         "hw_config.h": "c",
         "sd_card.h": "c",
-        "tusb.h": "c"
+        "tusb.h": "c",
+        "sdcard.h": "c",
+        "cstdint": "c",
+        "list": "c",
+        "text_encoding": "c",
+        "typeinfo": "c"
     }
 }

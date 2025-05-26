@@ -16,12 +16,18 @@ typedef enum {
 typedef enum {
     KEY_LEFT = 0U,
     KEY_RIGHT,
+    KEY_UP,
+    KEY_DOWN,
+    KEY_SELECT,
     KEY_USER,
     KEY_COUNT,
 } Key;
 
 #define KEY_LEFT_GPIO   21
 #define KEY_RIGHT_GPIO  22
+#define KEY_UP_GPIO     26
+#define KEY_DOWN_GPIO   27
+#define KEY_SELECT_GPIO 28
 #define KEY_USER_GPIO   24
 
 typedef void (* KeyCallback)(Key key, KeyState event);

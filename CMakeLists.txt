@@ -59,6 +59,7 @@ add_executable(Abetka
     usb_mass_storage/msc_disk.c
     usb_mass_storage/usb_descriptors.c
     src/sdAudio.c
+    src/sdCard.c
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/generated)

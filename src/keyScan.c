@@ -11,13 +11,16 @@ typedef struct {
     KeyState currentState;
 } KeyData;
 
-#define KEYSCAN_INTERVAL_US 100
+#define KEYSCAN_INTERVAL_US 500
 #define PRESS_THRESHOLD 20
 #define RELEASE_THRESHOLD -20
 
 static volatile KeyData keys[KEY_COUNT] = {
     [KEY_LEFT].gpio = KEY_LEFT_GPIO,
     [KEY_RIGHT].gpio = KEY_RIGHT_GPIO,
+    [KEY_UP].gpio = KEY_UP_GPIO,
+    [KEY_DOWN].gpio = KEY_DOWN_GPIO,
+    [KEY_SELECT].gpio = KEY_SELECT_GPIO,
     [KEY_USER].gpio = KEY_USER_GPIO,
 };
 static volatile KeyCallback keyCb = NULL;
@@ -122,15 +125,29 @@ bool keyScanIsKeyPressed(Key key)
 
 void keyScanProcess()
 {
+    struct {
+        Key key;
+        KeyState state;
+    } pendingEvents[KEY_COUNT] = {0};
+    int pendingEventCount = 0;
+
+    uint32_t status = save_and_disable_interrupts();
     for (Key key = KEY_LEFT; key < KEY_COUNT; key++) {
-        uint32_t status = save_and_disable_interrupts();
         if (keys[key].currentState != keys[key].lastState) {
-            keys[key].lastState = keys[key].currentState;
-            if (keyCb) {
-                keyCb(key, keys[key].currentState);
-            }
+            // Store the event for later processing outside of critical section
+            pendingEvents[pendingEventCount].key = key;
+            pendingEvents[pendingEventCount].state = keys[key].currentState;
+            pendingEventCount++;
+            keys[key].lastState = keys[key].currentState; 
         }
-        restore_interrupts(status);
+    }
+    restore_interrupts(status);
+
+    // Process pending events *outside* the critical section
+    for (size_t i = 0; i < pendingEventCount; i++) {
+        if (keyCb) {
+            keyCb(pendingEvents[i].key, pendingEvents[i].state);
+        }
     }
 }
 

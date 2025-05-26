@@ -13,6 +13,7 @@
 #include <tusb.h>
 #include "usb_mass_storage/tusb_config.h"
 #include "sdAudio.h"
+#include "sdCard.h"
 
 // How to build without optimizations
 // cmake -DCMAKE_BUILD_TYPE=Debug -DPICO_DEOPTIMIZED_DEBUG=1 ..
@@ -89,51 +90,11 @@ void batteryProcess()
     }
 }
 
-#include "hw_config.h"
-#include "f_util.h"
-#include "ff.h"
-
-void sdCardTest()
-{
-    puts("Hello, world!");
-
-    // See FatFs - Generic FAT Filesystem Module, "Application Interface",
-    // http://elm-chan.org/fsw/ff/00index_e.html
-    FATFS fs;
-    FRESULT fr = f_mount(&fs, "", 1);
-    if (FR_OK != fr) {
-        panic("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
-    }
-
-    // Open a file and write to it
-    FIL fil;
-    const char* const filename = "filename.txt";
-    fr = f_open(&fil, filename, FA_OPEN_APPEND | FA_WRITE);
-    if (FR_OK != fr && FR_EXIST != fr) {
-        panic("f_open(%s) error: %s (%d)\n", filename, FRESULT_str(fr), fr);
-    }
-    if (f_printf(&fil, "Hello, world!\n") < 0) {
-        printf("f_printf failed\n");
-    }
-
-    // Close the file
-    fr = f_close(&fil);
-    if (FR_OK != fr) {
-        printf("f_close error: %s (%d)\n", FRESULT_str(fr), fr);
-    }
-
-    // Unmount the SD card
-    f_unmount("");
-
-    puts("Goodbye, world!");
-}
-
 int main()
 {
-    // sdCardTest();
     tud_init(BOARD_TUD_RHPORT); // should be called before the stdio_init_all()
     stdio_init_all();
-
+    
     // TODO: O.T figure out how to utilize lvgl st7789 driver instead of custom one.
     st7789_init(&lcd_config, lcd_width, lcd_height);
     st7789_fill(0xFFFF);
@@ -142,19 +103,20 @@ int main()
     lv_display_set_buffers(display, (void *) frameBuff, NULL, sizeof(frameBuff), LV_DISPLAY_RENDER_MODE_FULL);
     lv_display_set_flush_cb(display, display_flush_cb);
     lv_tick_set_cb(getTimeMs);
-
+    
     mifareHalInit();
-
+    
     ws2812Init();
-
+    
+    sdCardInit();
     sdAudioTest();
 
-    batteryInit();
-    batteryPercent = batteryGetPercent();
+    // batteryInit();
+    // batteryPercent = batteryGetPercent();
     if (batteryPercent <= 0) {
         appModeSwitch(APP_MODE_DISCHARGED);
     } else {
-        appModeSwitch(APP_MODE_IDLE);
+        appModeSwitch(APP_MODE_READ_CARD);
     }
 
     // TODO: O.T. Implement indication module (e.g. LED or screen feedback)
@@ -166,7 +128,7 @@ int main()
     while(1)
     {
         keyScanProcess();
-        batteryProcess();
+        // batteryProcess();
         appModeProcess();
         tud_task();
         lv_timer_handler();

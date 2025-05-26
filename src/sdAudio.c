@@ -181,23 +181,7 @@ void playWave(char* fn) {
     }
 }
 
-int sdAudioTest()
+void sdAudioTest()
 {
-    FRESULT fr;
-    FATFS fs;
-    
-    // if (!sd_init_driver()) {
-    //     printf("SD Initial Error\n");
-    //     return 0;
-    // }
-    fr = f_mount(&fs, "0:", 1);
-    if (fr != FR_OK) {
-        printf("bool read_flag=true;mount error\n");
-        return 0;
-    }
-    
-    playWave("Heart.wav");
-    playWave("Sword.wav");
-
-    return 0;
+    playWave("misc/Sword.wav");
 }
