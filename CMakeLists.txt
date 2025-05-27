@@ -60,6 +60,7 @@ add_executable(Abetka
     usb_mass_storage/usb_descriptors.c
     src/sdAudio.c
     src/sdCard.c
+    src/pio_spi.c
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/generated)
@@ -67,6 +68,7 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/generated)
 # generate the header file into the source tree as it is included in the RP2040 datasheet
 pico_generate_pio_header(Abetka ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/generated)
 pico_generate_pio_header(Abetka ${CMAKE_CURRENT_LIST_DIR}/src/i2s.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/generated)
+pico_generate_pio_header(Abetka ${CMAKE_CURRENT_LIST_DIR}/src/spi.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/generated)
 
 pico_set_program_name(Abetka "Abetka")
 pico_set_program_version(Abetka "0.1")

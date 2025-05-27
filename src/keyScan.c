@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/sync.h"
+#include "pinout.h"
 
 typedef struct {
     const uint gpio;

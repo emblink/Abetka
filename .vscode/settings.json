@@ -64,6 +64,13 @@
         "cstdint": "c",
         "list": "c",
         "text_encoding": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "pinout.h": "c",
+        "pio_spi.h": "c",
+        "pio.h": "c",
+        "spi.pio.h": "c",
+        "bitset": "c",
+        "algorithm": "c",
+        "format": "c"
     }
 }

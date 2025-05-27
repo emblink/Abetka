@@ -11,11 +11,10 @@
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
 #include "ws2812.pio.h"
+#include "pinout.h"
 
 #define IS_RGBW true
 #define NUM_PIXELS 1
-
-#define WS2812_PIN 23
 
 static inline void put_pixel(uint32_t pixel_grb) {
     pio_sm_put_blocking(pio0, 0, pixel_grb << 8u);

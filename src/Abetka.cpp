@@ -14,44 +14,30 @@
 #include "usb_mass_storage/tusb_config.h"
 #include "sdAudio.h"
 #include "sdCard.h"
+#include "pinout.h"
 
 // How to build without optimizations
 // cmake -DCMAKE_BUILD_TYPE=Debug -DPICO_DEOPTIMIZED_DEBUG=1 ..
 // ninja
-/**
- * @brief Pin definitions for the DFPlayer.
- * Another pair of TX/RX pins can be used, just
- * be sure to address the relative uart instance.
- */
-#define GPIO_TX         8       // To RX on the player
-#define GPIO_RX         9       // To TX on the player
-#define DFPLAYER_UART   uart1
-#define ST7789_SPI      spi1
 
 #define BATTERY_CHECK_PERIOD_MS (60 * 1000)
 
 // lcd configuration
 static const struct st7789_config lcd_config = {
     .spi      = ST7789_SPI,
-    .gpio_din = 11,
-    .gpio_clk = 10,
-    .gpio_cs  = -1,
-    .gpio_dc  = 13,
-    .gpio_rst = 14,
-    .gpio_bl  = 15,
+    .gpio_din = ST7789_DIN,
+    .gpio_clk = ST7789_CLK,
+    .gpio_cs  = ST7789_CS,
+    .gpio_dc  = ST7789_DC,
+    .gpio_rst = ST7789_RST,
+    .gpio_bl  = ST7789_BL,
 };
 static const int lcd_width = 240;
 static const int lcd_height = 240;
 static uint16_t frameBuff[lcd_width * lcd_height] = {0};
 static lv_display_t * display = NULL;
 static uint32_t lastBatteryCheckMs = 0;
-static int32_t batteryPercent = 0;
-
-static bool isBntPressed(uint gpio)
-{
-    bool isPressed = false == gpio_get(gpio);
-    return isPressed;
-}
+static int32_t batteryPercent = 100;
 
 void display_flush_cb(lv_display_t * display, const lv_area_t * area, uint8_t * px_map)
 {
@@ -104,12 +90,10 @@ int main()
     lv_display_set_flush_cb(display, display_flush_cb);
     lv_tick_set_cb(getTimeMs);
     
-    mifareHalInit();
-    
     ws2812Init();
-    
     sdCardInit();
     sdAudioTest();
+    mifareHalInit();
 
     // batteryInit();
     // batteryPercent = batteryGetPercent();
@@ -120,10 +104,10 @@ int main()
     }
 
     // TODO: O.T. Implement indication module (e.g. LED or screen feedback)
-    // TODO: O.T. Define JSON-based folder and asset mapping structure
     // TODO: O.T. Implement audio playback module for letter and word sounds
     // TODO: O.T. Add multiple example words for each letter
     // TODO: O.T. Add images and display them alongside words using LVGL
+    // TODO: O.T fix ADC conflict with gpio pull-ups
 
     while(1)
     {
@@ -133,6 +117,6 @@ int main()
         tud_task();
         lv_timer_handler();
         // TODO: O.T Add power detect, sleep cases USB enumeration to fail
-        // sleep_ms(40);
+        sleep_ms(40);
     }
 }

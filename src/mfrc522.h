@@ -25,6 +25,7 @@ extern "C" {
 #include <string.h> //some functions need NULL to be defined
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
+#include "pinout.h"
 
 /*******************************************************************************
  * Types/enumerations/variables
@@ -36,14 +37,14 @@ extern "C" {
 // Used for ADT object allocation
 #define MFRC_MAX_INSTANCES 2	 
 // Reset pin to MFRC522
-#define RESET_PIN 20
+#define RESET_PIN MFRC522_RST
 
 static const uint8_t FIFO_SIZE = 64; // Size of the MFRC522 FIFO
 
-static const uint cs_pin = 17;
-static const uint sck_pin = 18;
-static const uint mosi_pin = 19;
-static const uint miso_pin = 16;
+static const uint cs_pin = MFRC522_CS;
+static const uint sck_pin = MFRC522_SCK;
+static const uint mosi_pin = MFRC522_MOSI;
+static const uint miso_pin = MFRC522_MISO;
 
 static const uint8_t SELF_TEST_BYTES[] = {
     0x00, 0xEB, 0x66, 0xBA, 0x57, 0xBF, 0x23, 0x95,

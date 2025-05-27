@@ -5,6 +5,13 @@
 */
 
 #include "mfrc522.h"
+#include "pio_spi.h"
+
+static pio_spi_inst_t spi_cmd = {
+        .pio = SPI_PIO,
+        .sm = SPI_PIO_CMD_SM,
+        .cs_pin = SPI_PIO_CS
+};
 
 // ADT object allocation counter
 static int MFRC_Instance_Counter = 0;
@@ -50,7 +57,8 @@ void PCD_WriteRegister(MFRC522Ptr_t mfrc, uint8_t reg, uint8_t value) {
     msg[1] = value;
 
     cs_select(mfrc->_chipSelectPin);
-    spi_write_blocking(mfrc->spi, msg, 2);
+    // spi_write_blocking(mfrc->spi, msg, 2);
+    pio_spi_write8_blocking(&spi_cmd, (const uint8_t *) &msg, sizeof(msg));
     cs_deselect(mfrc->_chipSelectPin);
 }
 
@@ -73,7 +81,8 @@ void PCD_WriteNRegister(
     }
 
     cs_select(mfrc->_chipSelectPin);
-    spi_write_blocking(mfrc->spi, msg, count + 1);
+    // spi_write_blocking(mfrc->spi, msg, count + 1);
+    pio_spi_write8_blocking(&spi_cmd, (const uint8_t *) &msg, count + 1);
     cs_deselect(mfrc->_chipSelectPin);
 }
 
@@ -89,8 +98,10 @@ uint8_t PCD_ReadRegister(
     const uint8_t msg = 0x80 | reg;
     
     cs_select(mfrc->_chipSelectPin);
-    spi_write_blocking(mfrc->spi, &msg, 1);
-    spi_read_blocking(mfrc->spi, 0, &buf, 1);
+    // spi_write_blocking(mfrc->spi, &msg, 1);
+    pio_spi_write8_blocking(&spi_cmd, &msg, 1);
+    // spi_read_blocking(mfrc->spi, 0, &buf, 1);
+    pio_spi_read8_blocking(&spi_cmd, &buf, 1);
     cs_deselect(mfrc->_chipSelectPin);
     return buf;
 }
@@ -212,7 +223,7 @@ PCD_CalculateCRC(MFRC522Ptr_t mfrc,
  */
 void PCD_Init(MFRC522Ptr_t mfrc, spi_inst_t *spi) {
 
-    mfrc->spi = spi0;
+    mfrc->spi = MFRC522_SPI;
     gpio_put(RESET_PIN, 0);
     sleep_ms(1000);
     gpio_put(RESET_PIN, 1);
@@ -222,13 +233,26 @@ void PCD_Init(MFRC522Ptr_t mfrc, spi_inst_t *spi) {
     gpio_set_dir(cs_pin, GPIO_OUT);
     gpio_put(cs_pin, 1);
 
-    spi_init(spi0, 1000000);
+    uint offset = pio_add_program(SPI_PIO, &spi_cpha0_program);
+    printf("Loaded program at %d\n", offset);
 
-    spi_set_format(spi0, 8, 0, 0, SPI_MSB_FIRST);
+    pio_spi_init(SPI_PIO, SPI_PIO_CMD_SM, offset,
+                 8,       // 8 bits per SPI frame
+                 31.25f,    // Clock divider for 40 MHz
+                 0,   // CPHA = 1
+                 0,   // CPOL = 1
+                 MFRC522_SCK,
+                 MFRC522_MOSI,
+                 MFRC522_MISO
+    );
 
-    gpio_set_function(sck_pin, GPIO_FUNC_SPI);
-    gpio_set_function(mosi_pin, GPIO_FUNC_SPI);
-    gpio_set_function(miso_pin, GPIO_FUNC_SPI);
+    // spi_init(MFRC522_SPI, 1000000);
+
+    // spi_set_format(MFRC522_SPI, 8, 0, 0, SPI_MSB_FIRST);
+
+    // gpio_set_function(sck_pin, GPIO_FUNC_SPI);
+    // gpio_set_function(mosi_pin, GPIO_FUNC_SPI);
+    // gpio_set_function(miso_pin, GPIO_FUNC_SPI);
 
     PCD_WriteRegister(mfrc, CommandReg, PCD_SoftReset);
 

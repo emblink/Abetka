@@ -2,6 +2,7 @@
 #include "hardware/adc.h"
 #include "hardware/gpio.h"
 #include "pico/stdlib.h"
+#include "pinout.h"
 
 typedef struct {
     int32_t percent;

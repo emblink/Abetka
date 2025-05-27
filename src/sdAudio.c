@@ -6,7 +6,7 @@
 #include "ff.h"
 #include "i2s.pio.h"
 #include "hardware/clocks.h"
-
+#include "pinout.h"
 
 uint8_t f_buf0[4010], f_buf1[4010]; //double buffer 
 uint8_t *file_ptr = f_buf0;
@@ -111,7 +111,7 @@ void i2s_pio_dma_init(PIO pio, uint sm) {
     dma_channel_set_irq1_enabled(i2s_pio_dma_param.chan_num, true); // enable irq1 (inte1)
     irq_add_shared_handler(DMA_IRQ_1, trans_wav, PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
     irq_set_enabled(DMA_IRQ_1, true);
-    dma_channel_configure(i2s_pio_dma_param.chan_num, &c, (void*) (PIO0_BASE+PIO_TXF0_OFFSET), 
+    dma_channel_configure(i2s_pio_dma_param.chan_num, &c, (void*) (I2S_PIO_BASE+PIO_TXF0_OFFSET), 
              fifo_ptr, MAX_BYTE_TRANS>> i2s_pio_dma_param.dma_size, false); //DMA_SIZE_8 or 16 or 32
 }
 
@@ -138,10 +138,10 @@ void i2s_init() {
     uint freq = wave_file_header.sampleRate*i2s_pio_dma_param.bitInsCycles*wave_file_header.bitsPerSample*2;
     i2s_pio_dma_param.dma_size = wave_file_header.bitsPerSample >> 4; // DMA_SIZE_8, 16, 32
 
-    i2s_pio_dma_init(pio0, 0);
+    i2s_pio_dma_init(I2S_PIO, I2S_PIO_SM);
 
-    i2s_pio_init(pio0, 0, 6, 8, wave_file_header.numbeOfChannel,wave_file_header.bitsPerSample, freq);
-    i2s_pio_enable(pio0, 0);
+    i2s_pio_init(I2S_PIO, I2S_PIO_SM, I2S_PIO_BLK, I2S_PIO_DIN, wave_file_header.numbeOfChannel,wave_file_header.bitsPerSample, freq);
+    i2s_pio_enable(I2S_PIO, I2S_PIO_SM);
 }
 
 void playWave(char* fn) {
@@ -174,7 +174,7 @@ void playWave(char* fn) {
             f_read(&pfile, file_ptr, MAX_BYTE_TRANS, &byte_trans_count);
             if (byte_trans_count < MAX_BYTE_TRANS) {
                 f_close(&pfile);
-                i2s_reset(pio0,0);
+                i2s_reset(I2S_PIO, I2S_PIO_SM);
                 break;
             }
         }
