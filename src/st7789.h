@@ -30,6 +30,9 @@ void st7789_put(uint16_t pixel);
 void st7789_fill(uint16_t pixel);
 void st7789_set_cursor(uint16_t x, uint16_t y);
 void st7789_vertical_scroll(uint16_t row);
+void st7789_ramwr();
+void st7789_caset(uint16_t xs, uint16_t xe);
+void st7789_raset(uint16_t ys, uint16_t ye);
 
 #endif
 

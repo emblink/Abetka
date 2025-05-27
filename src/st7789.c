@@ -11,6 +11,7 @@
 #include "hardware/gpio.h"
 
 #include "st7789.h"
+#include "pinout.h"
 
 static struct st7789_config st7789_cfg;
 static uint16_t st7789_width;
@@ -200,12 +201,19 @@ void st7789_put(uint16_t pixel)
 
 void st7789_fill(uint16_t pixel)
 {
+    st7789_set_cursor(0, 0);
+    st7789_ramwr(); // prepare for data mode
+
     int num_pixels = st7789_width * st7789_height;
 
-    st7789_set_cursor(0, 0);
+    // Create a small buffer filled with the pixel value
+    uint16_t buffer[64];
+    for (int i = 0; i < 64; i++) buffer[i] = pixel;
 
-    for (int i = 0; i < num_pixels; i++) {
-        st7789_put(pixel);
+    while (num_pixels > 0) {
+        int batch = num_pixels > 64 ? 64 : num_pixels;
+        st7789_write(buffer, batch * 2); // 2 bytes per pixel
+        num_pixels -= batch;
     }
 }
 

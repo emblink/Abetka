@@ -41,18 +41,14 @@ static int32_t batteryPercent = 100;
 
 void display_flush_cb(lv_display_t * display, const lv_area_t * area, uint8_t * px_map)
 {
-    /* The most simple case (also the slowest) to send all rendered pixels to the
-     * screen one-by-one.  `put_px` is just an example.  It needs to be implemented by you. */
-    uint16_t * buf16 = (uint16_t *)px_map; /* Let's say it's a 16 bit (RGB565) display */
-    int32_t x, y;
-    st7789_set_cursor(0, 0);
-    for(y = area->y1; y <= area->y2; y++) {
-        for(x = area->x1; x <= area->x2; x++) {
-            st7789_put(*buf16);
-            buf16++;
-        }
-    }
-    // TODO: O.T add fast write for the whole frame 
+    uint16_t w = area->x2 - area->x1 + 1;
+    uint16_t h = area->y2 - area->y1 + 1;
+    size_t len = w * h * 2;
+
+    st7789_caset(area->x1, area->x2);
+    st7789_raset(area->y1, area->y2);
+    st7789_ramwr();
+    st7789_write(px_map, len);
 
     /* IMPORTANT!!!
      * Inform LVGL that flushing is complete so buffer can be modified again. */
