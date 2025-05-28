@@ -88,9 +88,9 @@ int main()
     
     ws2812Init();
     sdCardInit();
-    sdAudioTest();
     mifareHalInit();
-
+    sdAudioPlayFile((char *) "misc/powerOn.wav");
+    
     // batteryInit();
     // batteryPercent = batteryGetPercent();
     if (batteryPercent <= 0) {
@@ -100,7 +100,6 @@ int main()
     }
 
     // TODO: O.T. Implement indication module (e.g. LED or screen feedback)
-    // TODO: O.T. Implement audio playback module for letter and word sounds
     // TODO: O.T. Add multiple example words for each letter
     // TODO: O.T. Add images and display them alongside words using LVGL
     // TODO: O.T fix ADC conflict with gpio pull-ups
@@ -113,6 +112,6 @@ int main()
         tud_task();
         lv_timer_handler();
         // TODO: O.T Add power detect, sleep cases USB enumeration to fail
-        sleep_ms(40);
+        // sleep_ms(40);
     }
 }

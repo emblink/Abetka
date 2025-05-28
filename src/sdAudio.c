@@ -145,7 +145,7 @@ void i2s_init() {
 }
 
 void playWave(char* fn) {
-    printf("%s\n", fn);
+    printf("SdAudio, playing %s\n", fn);
     FRESULT fr;
     uint br;
     FIL pfile;
@@ -181,7 +181,7 @@ void playWave(char* fn) {
     }
 }
 
-void sdAudioTest()
+void sdAudioPlayFile(char *path)
 {
-    playWave("misc/Sword.wav");
+    playWave(path);
 }

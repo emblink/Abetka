@@ -210,7 +210,7 @@ static void menuLettersProcess(void)
     strncpy(cardData.symbolUtf8, menuLetter.selectedLetter->name, sizeof(cardData.symbolUtf8) - 1);
     cardData.symbolUtf8[sizeof(cardData.symbolUtf8) - 1] = '\0';
 
-    bool res = mifareWriteData(cardData.rawData);
+    bool res = mifareWriteData(&cardData);
     if (res) {
         showWriteStatus(true);
         ws2812SetColor(GREEN);

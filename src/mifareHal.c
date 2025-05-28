@@ -16,30 +16,76 @@ bool mifareIsInProximity()
     return res;
 }
 
-bool mifareReadData(uint8_t *readBuff)
+bool mifareReadData(CardData *card)
 {
     printf("Read Mifare Data\n\r");
-    PICC_ReadCardSerial(mfrc);
-    // Read Page
-    uint8_t size = 18;
-    uint8_t page = CARD_DATA_PAGE;
-    StatusCode res = MIFARE_Read(mfrc, page, readBuff, &size);
-    if (STATUS_OK == res) {
-        for (int i = 0; i < 16; i += 4) {
-            printf("Page %02u: %02X %02X %02X %02X\n", page, readBuff[i], readBuff[i + 1], 
-                    readBuff[i + 2], readBuff[i+ 3]);
-            page++;
-        }
-        PICC_HaltA(mfrc);
+    if (!PICC_ReadCardSerial(mfrc)) {
+        printf("Failed to read card serial\n\r");
+        return false;
     }
 
-    return STATUS_OK == res;
+    // Read 2 Pages, because only 4 bytes per page can be stored, see MIFARE_Write description
+    uint8_t readBuff[18] = {0};
+    uint8_t size = 18;
+    StatusCode res = STATUS_ERROR;
+
+    res = MIFARE_Read(mfrc, CARD_LANGUAGE_PAGE, readBuff, &size);
+    if (STATUS_OK != res) {
+        printf("Failed to read card language page\n\r");
+        return false;
+    }
+    printf("Card Language: "); 
+    for (int i = 0; i < sizeof(card->langName); i++) {
+        card->langName[i] = readBuff[i];
+        printf("%c", readBuff[i]); 
+    }
+    printf("\n");
+
+    res = MIFARE_Read(mfrc, CARD_SYMBOL_PAGE, readBuff, &size);
+    if (STATUS_OK != res) {
+        printf("Failed to read card symbol page\n\r");
+        return false;
+    }
+    printf("Card Symbol: "); 
+    for (int i = 0; i < sizeof(card->langName); i++) {
+        card->symbolUtf8[i] = readBuff[i];
+        printf("%c", readBuff[i]);
+    }
+    printf("\n");
+
+    PICC_HaltA(mfrc);
+
+    return true;
 }
 
-bool mifareWriteData(uint8_t *writeBuff)
+bool mifareWriteData(CardData *card)
 {
-    PICC_ReadCardSerial(mfrc);
-    StatusCode res = MIFARE_Write(mfrc, CARD_DATA_PAGE, writeBuff, 16);
+    if (!PICC_ReadCardSerial(mfrc)) {
+        printf("Failed to read card serial\n\r");
+        return false;
+    }
+
+    uint8_t writeBuff[16] = {0};
+    for (int i = 0; i < sizeof(card->langName); i++) {
+        writeBuff[i] = card->langName[i];
+    }
+
+    StatusCode res = STATUS_ERROR;
+    res = MIFARE_Write(mfrc, CARD_LANGUAGE_PAGE, writeBuff, 16);
+    if (STATUS_OK != res) {
+        printf("Failed to write card langugae page\n\r");
+        return false;
+    }
+
+    for (int i = 0; i < sizeof(card->symbolUtf8); i++) {
+        writeBuff[i] = card->symbolUtf8[i];
+    }
+    res = MIFARE_Write(mfrc, CARD_SYMBOL_PAGE, writeBuff, 16);
+    if (STATUS_OK != res) {
+        printf("Failed to write card symbol page\n\r");
+        return false;
+    }
+
     PICC_HaltA(mfrc);
-    return STATUS_OK == res;
+    return true;
 }

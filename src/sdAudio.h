@@ -2,7 +2,7 @@
 extern "C" {
 #endif
 
-void sdAudioTest();
+void sdAudioPlayFile(char *path);
 
 #ifdef __cplusplus
 }

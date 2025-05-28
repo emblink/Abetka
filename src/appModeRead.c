@@ -7,24 +7,30 @@
 #include "appMode.h"
 #include "lvgl.h"
 #include "uaSymbol.h"
+#include "sdAudio.h"
 
 static CardData cardData = {};
 static lv_obj_t *labelSymbol = NULL;
 
 static void updateUASymbolOnDisplay()
 {
-    // if (LANGUGAGE_ID_INVALID == cardData.langId) {
-    //     return;
-    // }
+    lv_label_set_text(labelSymbol, cardData.symbolUtf8);
+}
 
-    // char symbolUtf8[5] = {0};
-    // int idx = cardData.symbol - UA_ID_FIRST;
-    // if (idx < UA_LETTER_COUNT) {
-    //     uaSymbolGetByIndex(idx, symbolUtf8);
-    //     lv_label_set_text(labelSymbol, symbolUtf8);
-    // } else {
-    //     lv_label_set_text(labelSymbol, "?");
-    // }
+static void playLetter()
+{
+    // Form file path from language and symbol
+    char path[50] = {0};
+    snprintf(path, sizeof(path), "%s/%s/%s.wav", cardData.langName, "letters", cardData.symbolUtf8);
+    sdAudioPlayFile(path);
+}
+
+static void playSound()
+{
+    // Form file path from language and symbol
+    char path[50] = {0};
+    snprintf(path, sizeof(path), "%s/%s/%s.wav", cardData.langName, "sounds", cardData.symbolUtf8);
+    sdAudioPlayFile(path);
 }
 
 static void processInput(Key key, KeyState event)
@@ -32,7 +38,7 @@ static void processInput(Key key, KeyState event)
     switch (key) {
     case KEY_SELECT:
         if (KEY_STATE_PRESSED == event) {
-            // TODO: O.T play letter sound
+            playSound();
         } else if (KEY_STATE_HOLD == event) {
             appModeSwitch(APP_MODE_WRITE_CARD);
         }
@@ -79,30 +85,16 @@ void appModeReadProcess()
         return;
     }
 
-    bool res = mifareReadData(cardData.rawData);
+    bool res = mifareReadData(&cardData);
     if (!res)
     {
-        printf("Failed to read Mifare data!\n");
         ws2812SetColor(RED);
         return;
     }
 
-    // if (LANGUAGE_ID_UA == cardData.langId) {
-    //     printf("This is UA symbol: %u\n", cardData.symbol);
-    //     if (cardData.symbol >= UA_ID_FIRST && cardData.symbol <= UA_ID_LAST) {
-    //         // dfplayer_play_folder(&dfplayer, cardData.langId, cardData.symbol - UA_ID_FIRST + 1); // offset 1 cause player track names starts with 001
-    //         ws2812SetColor(GREEN);
-    //         updateUASymbolOnDisplay();
-    //     }
-    // } else if (LANGUAGE_ID_EN == cardData.langId) {
-    //     printf("This is EN symbol: %u\n", cardData.symbol);
-    //     if (cardData.symbol >= EN_ID_FIRST && cardData.symbol <= EN_ID_LAST) {
-    //         // dfplayer_play_folder(&dfplayer, cardData.langId, cardData.symbol - EN_ID_FIRST + 1); // offset 1 cause player track names starts with 001
-    //         ws2812SetColor(GREEN);
-    //     }
-    // } else {
-    //     ws2812SetColor(RED);
-    // }
+    updateUASymbolOnDisplay();
+    playLetter();
+    ws2812SetColor(GREEN);
 }
 
 void appModeReadExit()
