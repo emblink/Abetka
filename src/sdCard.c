@@ -7,8 +7,6 @@
 #include <stdio.h>
 
 static FATFS fs;
-static Node* langList = NULL;
-static Node* letterList = NULL;
 
 bool sdCardInit()
 {
@@ -20,7 +18,7 @@ bool sdCardInit()
     return true;
 }
 
-static void freeList(Node* head) {
+void freeList(Node* head) {
     while (head) {
         Node* next = head->next;
         free(head);
@@ -28,22 +26,15 @@ static void freeList(Node* head) {
     }
 }
 
-Node* sdCardGetLanguageList(void) {
+Node* sdCardGetDirsInFolder(const char* folderPath) {
     DIR dir;
     FILINFO fno;
     FRESULT fr;
 
-    printf("Reading folders from root...\n");
-
-    fr = f_opendir(&dir, "/");
+    fr = f_opendir(&dir, folderPath);
     if (fr != FR_OK) {
         printf("f_opendir error: %s (%d)\n", FRESULT_str(fr), fr);
         return NULL;
-    }
-
-    if (langList) {
-        freeList(langList);
-        langList = NULL;
     }
 
     Node* head = NULL;
@@ -59,14 +50,12 @@ Node* sdCardGetLanguageList(void) {
             continue;
         }            
 
-        if (0 == strcmp("misc", fno.fname)) {
-            continue; // ignore app files dir
-        }
-
         if (fno.fattrib & AM_DIR) {
             Node* node = malloc(sizeof(Node));
             if (!node) {
                 printf("Memory allocation failed\n");
+                freeList(head);
+                head = NULL;
                 break;
             }
 
@@ -83,22 +72,28 @@ Node* sdCardGetLanguageList(void) {
                 tail->next->prev = tail;
                 tail = node;
             }
-
-            printf("Directory found: %s\n", node->name);
         }
     }
 
     f_closedir(&dir);
-
-    langList = head;
     return head;
+}
+
+Node* sdCardGetLanguageList(void) {
+    Node* langList = sdCardGetDirsInFolder("/");
+    return langList;
 }
 
 Node* sdCardGetLetters(const char* languageFolder)
 {
     char path[256] = {0};
     snprintf(path, sizeof(path), "/%s/letters", languageFolder);
+    Node* letterList = sdCardGetFilesInFolder(path, "wav");
+    return letterList;
+}
 
+Node* sdCardGetFilesInFolder(const char* path, const char *fileExtension)
+{
     DIR dir;
     FILINFO fno;
     FRESULT fr;
@@ -107,12 +102,6 @@ Node* sdCardGetLetters(const char* languageFolder)
     if (fr != FR_OK) {
         printf("Cannot open folder '%s': %s (%d)\n", path, FRESULT_str(fr), fr);
         return NULL;
-    }
-
-    // clear previous list
-    if (letterList) {
-        freeList(letterList);
-        letterList = NULL;
     }
 
     Node* head = NULL;
@@ -131,23 +120,21 @@ Node* sdCardGetLetters(const char* languageFolder)
 
         // Check for .wav extension (case-insensitive)
         const char* fname = fno.fname;
-        size_t len = strlen(fname);
-        if (len < 5) {
+        const char* ext = strrchr(fname, '.');
+        if (!ext || strcasecmp(ext + 1, fileExtension) != 0) {
             continue;
-        }
-        const char* ext = fname + len - 4; // Pointer to the start of the potential extension (e.g., ".wav")
-        if (strcasecmp(ext, ".wav") != 0) { // Check if it's a .wav file (case-insensitive)
-             continue; // Skip if it's not a .wav file
         }
 
         Node* node = malloc(sizeof(Node));
         if (!node) {
             printf("Memory allocation failed\n");
+            freeList(head);
+            head = NULL;
             break;
         }
 
         int i = 0;
-        while (fname[i] != '.') {
+        while (fname[i] != '.' && fname[i] != '\0' && i < sizeof(node->name) - 1) {
             node->name[i] = fname[i];
             i++;
         }
@@ -163,12 +150,9 @@ Node* sdCardGetLetters(const char* languageFolder)
             tail->next->prev = tail;
             tail = node;
         }
-
-        printf("Letter found: %s\n", node->name);
     }
 
     f_closedir(&dir);
-    letterList = head;
 
     return head;
 }

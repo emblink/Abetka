@@ -120,6 +120,10 @@ static void loadLetterList(const char* languageName)
         menuLetter.letterListHead = NULL;
     }
 
+    if (menuLetter.letterListHead) {
+        freeList(menuLetter.letterListHead);
+        menuLetter.letterListHead = NULL;
+    }
     menuLetter.letterListHead = sdCardGetLetters(languageName);
 
     if (!menuLetter.letterListHead) {
@@ -272,6 +276,10 @@ void menuLanguageEnter(void)
 {
     guiInit();
     keyScanInit(processLanguageMenuInput);
+    if (menuLanguage.langListHead) {
+        freeList(menuLanguage.langListHead);
+        menuLanguage.langListHead = NULL;
+    }
     menuLanguage.langListHead = sdCardGetLanguageList();
     if (!menuLanguage.langListHead) {
         printf("No language folders found\n");

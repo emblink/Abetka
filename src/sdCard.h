@@ -14,6 +14,9 @@ typedef struct Node {
 bool sdCardInit();
 Node* sdCardGetLanguageList(void);
 Node* sdCardGetLetters(const char* languageFolder);
+Node* sdCardGetFilesInFolder(const char* folderPath, const char *fileExtension);
+Node* sdCardGetDirsInFolder(const char* folderPath);
+void freeList(Node* head);
 
 #ifdef __cplusplus
 }
