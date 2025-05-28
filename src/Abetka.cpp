@@ -101,7 +101,6 @@ int main()
 
     // TODO: O.T. Implement indication module (e.g. LED or screen feedback)
     // TODO: O.T. Add multiple example words for each letter
-    // TODO: O.T. Add images and display them alongside words using LVGL
     // TODO: O.T fix ADC conflict with gpio pull-ups
 
     while(1)

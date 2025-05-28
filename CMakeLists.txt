@@ -84,7 +84,12 @@ target_link_libraries(Abetka
 )
 
 # Add the standard include files to the build
-target_include_directories(Abetka PRIVATE
+include_directories(Abetka PUBLIC
+    lib/no-OS-FatFS-SD-SDIO-SPI-RPi-Pico/src/ff15/source
+    lib/no-OS-FatFS-SD-SDIO-SPI-RPi-Pico/src/include
+)
+
+target_include_directories(Abetka PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}
         lvgl
         src
@@ -94,7 +99,7 @@ target_include_directories(Abetka PRIVATE
 target_compile_options(Abetka PRIVATE -O0 -g)
 
 # Add any user requested libraries
-target_link_libraries(Abetka 
+target_link_libraries(Abetka
         hardware_spi
         hardware_dma
         hardware_pio

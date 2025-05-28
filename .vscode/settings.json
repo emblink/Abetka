@@ -71,6 +71,11 @@
         "spi.pio.h": "c",
         "bitset": "c",
         "algorithm": "c",
-        "format": "c"
+        "format": "c",
+        "*.txt": "c",
+        "string.h": "c",
+        "lv_global.h": "c",
+        "lv_libpng.h": "c",
+        "lv_image_decoder_private.h": "c"
     }
 }

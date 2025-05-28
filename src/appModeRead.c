@@ -8,9 +8,44 @@
 #include "lvgl.h"
 #include "uaSymbol.h"
 #include "sdAudio.h"
+#include "sdCard.h"
 
 static CardData cardData = {};
 static lv_obj_t *labelSymbol = NULL;
+static Node *wordsList = NULL;
+static Node *currentWord = NULL;
+static lv_obj_t *imgWord = NULL;
+
+static void playWordAnimation(const char *imgPath)
+{
+    if (imgWord) {
+        lv_obj_del(imgWord);
+        imgWord = NULL;
+    }
+
+    imgWord = lv_img_create(lv_scr_act());
+    lv_img_set_src(imgWord, imgPath);
+
+    lv_obj_set_size(imgWord, 240, 240);
+    lv_obj_align(imgWord, LV_ALIGN_CENTER, 0, 0);
+}
+
+static void playWord(void)
+{
+    char folderPath[100] = {0};
+    snprintf(folderPath, sizeof(folderPath), "%s/words/%s", cardData.langName, cardData.symbolUtf8);
+
+    if (!currentWord) {
+        return;
+    }
+
+    char path[100] = {0};
+    snprintf(path, sizeof(path), "%s/%s.wav", folderPath, currentWord->name);
+    sdAudioPlayFile(path);
+
+    snprintf(path, sizeof(path), "A:/%s/%s.bmp", folderPath, currentWord->name);
+    playWordAnimation(path);
+}
 
 static void updateUASymbolOnDisplay()
 {
@@ -19,18 +54,37 @@ static void updateUASymbolOnDisplay()
 
 static void playLetter()
 {
-    // Form file path from language and symbol
     char path[50] = {0};
     snprintf(path, sizeof(path), "%s/%s/%s.wav", cardData.langName, "letters", cardData.symbolUtf8);
     sdAudioPlayFile(path);
+
+    // update words list
+    if (wordsList) {
+        freeList(wordsList);
+        wordsList = NULL;
+    }
+
+    char folderPath[100] = {0};
+    snprintf(folderPath, sizeof(folderPath), "%s/words/%s", cardData.langName, cardData.symbolUtf8);
+    wordsList = sdCardGetFilesInFolder(folderPath, "wav");
+    currentWord = wordsList;
 }
 
 static void playSound()
 {
-    // Form file path from language and symbol
     char path[50] = {0};
     snprintf(path, sizeof(path), "%s/%s/%s.wav", cardData.langName, "sounds", cardData.symbolUtf8);
     sdAudioPlayFile(path);
+}
+
+static Node* getLastNode(Node* head)
+{
+    if (!head) return NULL;
+    Node* node = head;
+    while (node->next) {
+        node = node->next;
+    }
+    return node;
 }
 
 static void processInput(Key key, KeyState event)
@@ -41,6 +95,20 @@ static void processInput(Key key, KeyState event)
             playSound();
         } else if (KEY_STATE_HOLD == event) {
             appModeSwitch(APP_MODE_WRITE_CARD);
+        }
+        break;
+    
+    case KEY_LEFT:
+        if (currentWord && KEY_STATE_PRESSED == event) {
+            currentWord = currentWord->prev ? currentWord->prev : getLastNode(wordsList);
+            playWord();
+        }
+        break;
+
+    case KEY_RIGHT:
+        if (currentWord && KEY_STATE_PRESSED == event) {
+            currentWord = currentWord->next ? currentWord->next : wordsList;
+            playWord();
         }
         break;
 
@@ -104,5 +172,10 @@ void appModeReadExit()
     if (labelSymbol) {
         lv_obj_del(labelSymbol);
         labelSymbol = NULL;
+    }
+
+    if (imgWord) {
+        lv_obj_del(imgWord);
+        imgWord = NULL;
     }
 }
