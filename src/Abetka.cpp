@@ -102,6 +102,10 @@ int main()
     // TODO: O.T. Implement indication module (e.g. LED or screen feedback)
     // TODO: O.T. Add multiple example words for each letter
     // TODO: O.T fix ADC conflict with gpio pull-ups
+    // TODO: O.T add idle timeout and sleep mode
+    // TODO: O.T fix blocking audio, consider to use another i2s module, links
+    // https://github.com/raspberrypi/pico-extras/tree/master/src/rp2_common/pico_audio_i2s
+    // https://github.com/raspberrypi/pico-playground/blob/master/audio/sine_wave/sine_wave.c
 
     while(1)
     {
