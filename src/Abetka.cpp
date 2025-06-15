@@ -113,6 +113,7 @@ int main()
     // TODO: O.T. Add multiple example words for each letter
     // TODO: O.T add idle timeout and sleep mode
     // TODO: O.T fix blocking audio, consider to use another i2s module, links
+    // TODO: O.T fix display flickering during audio playback
     // https://github.com/raspberrypi/pico-extras/tree/master/src/rp2_common/pico_audio_i2s
     // https://github.com/raspberrypi/pico-playground/blob/master/audio/sine_wave/sine_wave.c
 
