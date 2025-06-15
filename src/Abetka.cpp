@@ -106,7 +106,7 @@ int main()
     if (batteryPercent <= 0) {
         appModeSwitch(APP_MODE_DISCHARGED);
     } else {
-        appModeSwitch(APP_MODE_READ_CARD);
+        appModeSwitch(APP_MODE_IDLE);
     }
 
     // TODO: O.T. Implement indication module (e.g. LED or screen feedback)
