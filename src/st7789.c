@@ -18,7 +18,7 @@ static uint16_t st7789_width;
 static uint16_t st7789_height;
 static bool st7789_data_mode = false;
 
-static void st7789_cmd(uint8_t cmd, const uint8_t* data, size_t len)
+void st7789_cmd(uint8_t cmd, const uint8_t* data, size_t len)
 {
     if (st7789_cfg.gpio_cs > -1) {
         spi_set_format(st7789_cfg.spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
@@ -99,14 +99,18 @@ void st7789_init(const struct st7789_config* config, uint16_t width, uint16_t he
     }
     gpio_init(st7789_cfg.gpio_dc);
     gpio_init(st7789_cfg.gpio_rst);
-    gpio_init(st7789_cfg.gpio_bl);
+    if (st7789_cfg.gpio_bl > -1) {
+        gpio_init(st7789_cfg.gpio_bl);
+    }
 
     if (st7789_cfg.gpio_cs > -1) {
         gpio_set_dir(st7789_cfg.gpio_cs, GPIO_OUT);
     }
     gpio_set_dir(st7789_cfg.gpio_dc, GPIO_OUT);
     gpio_set_dir(st7789_cfg.gpio_rst, GPIO_OUT);
-    gpio_set_dir(st7789_cfg.gpio_bl, GPIO_OUT);
+    if (st7789_cfg.gpio_bl > -1) {
+        gpio_set_dir(st7789_cfg.gpio_bl, GPIO_OUT);
+    }
 
     if (st7789_cfg.gpio_cs > -1) {
         gpio_put(st7789_cfg.gpio_cs, 1);
@@ -153,7 +157,9 @@ void st7789_init(const struct st7789_config* config, uint16_t width, uint16_t he
     st7789_cmd(0x29, NULL, 0);
     sleep_ms(10);
 
-    gpio_put(st7789_cfg.gpio_bl, 1);
+    if (st7789_cfg.gpio_bl > -1) {
+        gpio_set_dir(st7789_cfg.gpio_bl, GPIO_OUT);
+    }
 }
 
 void st7789_ramwr()
@@ -232,4 +238,9 @@ void st7789_vertical_scroll(uint16_t row)
 
     // VSCSAD (37h): Vertical Scroll Start Address of RAM 
     st7789_cmd(0x37, data, sizeof(data));
+}
+
+void st7789_set_rotation(uint8_t madctl)
+{
+    st7789_cmd(0x36, (uint8_t[]){ madctl }, 1);
 }

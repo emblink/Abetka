@@ -39,22 +39,6 @@ static lv_display_t * display = NULL;
 static uint32_t lastBatteryCheckMs = 0;
 static int32_t batteryPercent = 100;
 
-void display_flush_cb(lv_display_t * display, const lv_area_t * area, uint8_t * px_map)
-{
-    uint16_t w = area->x2 - area->x1 + 1;
-    uint16_t h = area->y2 - area->y1 + 1;
-    size_t len = w * h * 2;
-
-    st7789_caset(area->x1, area->x2);
-    st7789_raset(area->y1, area->y2);
-    st7789_ramwr();
-    st7789_write(px_map, len);
-
-    /* IMPORTANT!!!
-     * Inform LVGL that flushing is complete so buffer can be modified again. */
-    lv_display_flush_ready(display);
-}
-
 // Millisecond timestamp — you need this for `lv_tick_inc`
 static uint32_t getTimeMs(void) {
     return to_ms_since_boot(get_absolute_time());
@@ -72,20 +56,46 @@ void batteryProcess()
     }
 }
 
+static void st7789SendCmdCb(lv_display_t * disp, const uint8_t * cmd, size_t cmd_size,
+                            const uint8_t * param, size_t param_size)
+{
+    (void)disp;
+    if (cmd_size != 1) return;
+
+    st7789_cmd(cmd[0], param, param_size);
+}
+
+static void st7789SendColorCb(lv_display_t * disp, const uint8_t * cmd, size_t cmd_size,
+                              uint8_t * param, size_t param_size)
+{
+    (void)cmd;
+    (void)cmd_size;
+    st7789_write(param, param_size);
+
+    lv_display_flush_ready(disp);
+}
+
 int main()
 {
     tud_init(BOARD_TUD_RHPORT); // should be called before the stdio_init_all()
-    stdio_init_all();
-    
-    // TODO: O.T figure out how to utilize lvgl st7789 driver instead of custom one.
-    st7789_init(&lcd_config, lcd_width, lcd_height);
-    st7789_fill(0xFFFF);
+    stdio_init_all();    
+
     lv_init();
-    display = lv_display_create(lcd_width, lcd_height);
-    lv_display_set_buffers(display, (void *) frameBuff, NULL, sizeof(frameBuff), LV_DISPLAY_RENDER_MODE_FULL);
-    lv_display_set_flush_cb(display, display_flush_cb);
     lv_tick_set_cb(getTimeMs);
-    
+    st7789_init(&lcd_config, lcd_width, lcd_height);
+    display = lv_st7789_create(
+        lcd_width, lcd_height,
+        LV_LCD_FLAG_NONE,
+        st7789SendCmdCb,
+        st7789SendColorCb
+    );
+    lv_disp_set_rotation(display, LV_DISPLAY_ROTATION_90);
+    #define X_OFFSET 80
+    lv_st7789_set_gap(display, X_OFFSET, 0);
+    lv_st7789_set_invert(display, true);
+    lv_st7789_set_gamma_curve(display, 2);
+    lv_display_set_buffers(display, (void *) frameBuff, NULL, sizeof(frameBuff), LV_DISPLAY_RENDER_MODE_FULL);
+
     ws2812Init();
     sdCardInit();
     mifareHalInit();
@@ -101,7 +111,6 @@ int main()
 
     // TODO: O.T. Implement indication module (e.g. LED or screen feedback)
     // TODO: O.T. Add multiple example words for each letter
-    // TODO: O.T fix ADC conflict with gpio pull-ups
     // TODO: O.T add idle timeout and sleep mode
     // TODO: O.T fix blocking audio, consider to use another i2s module, links
     // https://github.com/raspberrypi/pico-extras/tree/master/src/rp2_common/pico_audio_i2s

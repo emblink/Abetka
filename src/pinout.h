@@ -32,6 +32,7 @@
 #define ST7789_CS               -1
 #define ST7789_DC               5
 #define ST7789_RST              4
+#define ST7789_BL               -1
 
 #define MFRC522_MOSI            SPI_PIO_MOSI
 #define MFRC522_MISO            SPI_PIO_MISO
