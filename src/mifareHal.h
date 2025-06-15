@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#define MFRC522_SPI     spi0
+// #define MFRC522_SPI     spi0
 
 void mifareHalInit();
 bool mifareReadData(CardData *card);
