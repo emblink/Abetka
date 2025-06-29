@@ -27,6 +27,8 @@ set(PICO_BOARD pico CACHE STRING "Board type")
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
+set(PICO_EXTRAS_PATH ../lib/pico-extras)
+include(pico_extras_import.cmake)
 
 project(Abetka C CXX ASM)
 
@@ -107,7 +109,14 @@ target_link_libraries(Abetka
         tinyusb_additions
         tinyusb_board
         tinyusb_device
+         pico_audio_i2s
         )
+
+target_compile_definitions(Abetka PRIVATE
+    PICO_AUDIO_I2S_MONO_INPUT=1
+    USE_AUDIO_I2S=1
+    PICO_AUDIO_I2S_PIO=1
+)
 
 pico_add_extra_outputs(Abetka)
 

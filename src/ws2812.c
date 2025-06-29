@@ -77,21 +77,16 @@ const struct {
 
 void ws2812Init()
 {
-    PIO pio = pio0;
-    int sm = 0;
-    uint offset = pio_add_program(pio, &ws2812_program);
-    ws2812_program_init(pio, sm, offset, WS2812_PIN, 800000, IS_RGBW);
+    uint offset = pio_add_program(WS2812_PIO, &ws2812_program);
+    ws2812_program_init(WS2812_PIO, WS2812_PIO_SM, offset, WS2812_PIN, 800000, IS_RGBW);
 }
 
 void ws2812Test() {
     printf("WS2812 Smoke Test, using pin %d", WS2812_PIN);
 
-    // todo get free sm
-    PIO pio = pio0;
-    int sm = 0;
-    uint offset = pio_add_program(pio, &ws2812_program);
+    uint offset = pio_add_program(WS2812_PIO, &ws2812_program);
 
-    ws2812_program_init(pio, sm, offset, WS2812_PIN, 800000, IS_RGBW);
+    ws2812_program_init(WS2812_PIO, WS2812_PIO_SM, offset, WS2812_PIN, 800000, IS_RGBW);
 
     int t = 0;
     while (1) {

@@ -101,8 +101,8 @@ int main()
     mifareHalInit();
     sdAudioPlayFile((char *) "misc/powerOn.wav");
     
-    // batteryInit();
-    // batteryPercent = batteryGetPercent();
+    batteryInit();
+    batteryPercent = batteryGetPercent();
     if (batteryPercent <= 0) {
         appModeSwitch(APP_MODE_DISCHARGED);
     } else {
@@ -120,8 +120,9 @@ int main()
     while(1)
     {
         keyScanProcess();
-        // batteryProcess();
+        batteryProcess();
         appModeProcess();
+        sdAudioProcess();
         tud_task();
         lv_timer_handler();
         // TODO: O.T Add power detect, sleep cases USB enumeration to fail
