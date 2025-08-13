@@ -78,7 +78,7 @@ static void st7789SendColorCb(lv_display_t * disp, const uint8_t * cmd, size_t c
 int main()
 {
     tud_init(BOARD_TUD_RHPORT); // should be called before the stdio_init_all()
-    stdio_init_all();    
+    stdio_init_all();
 
     lv_init();
     lv_tick_set_cb(getTimeMs);

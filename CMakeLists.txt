@@ -114,6 +114,7 @@ target_link_libraries(Abetka
 
 target_compile_definitions(Abetka PRIVATE
     PICO_AUDIO_I2S_MONO_INPUT=1
+    PICO_AUDIO_I2S_MONO_OUTPUT=1
     USE_AUDIO_I2S=1
     PICO_AUDIO_I2S_PIO=1
 )
