@@ -43,6 +43,9 @@ void sdAudioPlayFile(char *path) {
     // Stop any current playback first
     if (sd_audio_playing) {
         stopPlayback();
+        f_close(&sd_audio_file);
+        memset(&sd_audio_file, 0, sizeof(sd_audio_file));
+        sd_audio_playing = false;
     }
 
     FRESULT fr = f_open(&sd_audio_file, path, FA_READ);
@@ -110,6 +113,8 @@ void sdAudioProcess() {
 
     // Try to get a free audio buffer non-blocking
     struct audio_buffer *buffer = take_audio_buffer(producer_pool, false);
+    // If buffer is NULL, it means no buffer is currently available,
+    // so we wait for the next iteration of the loop. This is non-blocking.
     if (buffer) {
         UINT br;
         // Read data into the buffer's bytes
@@ -127,10 +132,4 @@ void sdAudioProcess() {
         buffer->sample_count = br / (wave_file_header.bitsPerSample / 8);
         give_audio_buffer(producer_pool, buffer);
     }
-
-    if (!sd_audio_playing) {
-        stopPlayback();
-    }
-    // If buffer is NULL, it means no buffer is currently available,
-    // so we wait for the next iteration of the loop. This is non-blocking.
 }
