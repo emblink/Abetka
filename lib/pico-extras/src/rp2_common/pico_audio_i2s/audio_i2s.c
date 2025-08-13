@@ -475,5 +475,7 @@ void audio_i2s_deinit() {
         audio_destroy_pool(audio_i2s_producer);
         audio_i2s_producer = NULL;
     }
-    spin_locks_reset();
+
+    irq_remove_handler(DMA_IRQ_0 + PICO_AUDIO_I2S_DMA_IRQ, audio_i2s_dma_irq_handler);
+    // spin_locks_reset(); // TODO: figure out how to properly free locks
 }
