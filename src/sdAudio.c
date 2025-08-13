@@ -1,3 +1,4 @@
+#include "sdAudio.h"
 #include <stdio.h>
 #include <math.h>
 #include "pico/stdlib.h"
@@ -7,8 +8,6 @@
 #include "sd_card.h"
 #include "ff.h"
 #include "pinout.h"
-
-#define SAMPLES_PER_BUFFER 4096
 
 // WAV Header struct (moved here for consistency, though you already have it)
 struct wave_file_header_t {
@@ -34,9 +33,7 @@ static volatile bool sd_audio_playing = false;
 
 static void stopPlayback()
 {
-    f_close(&sd_audio_file);
     audio_i2s_deinit();
-    sd_audio_playing = false;
 }
 
 // Your main function to start playing a WAV file
@@ -83,7 +80,7 @@ void sdAudioPlayFile(char *path) {
             .sample_stride = 2
     };
 
-    producer_pool = audio_new_producer_pool(&producer_format, 3, SAMPLES_PER_BUFFER);
+    producer_pool = audio_new_producer_pool(&producer_format, 2, SAMPLES_PER_BUFFER);
     const struct audio_format *output_format;
     
     // Configure I2S
@@ -107,7 +104,7 @@ void sdAudioPlayFile(char *path) {
 
 // This function will be called repeatedly in main loop
 void sdAudioProcess() {
-    if (!sd_audio_playing) {
+    if (!sd_audio_playing || NULL == producer_pool) {
         return; // Not playing, do nothing
     }
 
@@ -120,16 +117,19 @@ void sdAudioProcess() {
         
         if (fr != FR_OK || br == 0) {
             // End of file or read error
+            f_close(&sd_audio_file);
             stopPlayback();
-            // f_close(&sd_audio_file);
-            // audio_i2s_set_enabled(false);
-            // sd_audio_playing = false;
+            sd_audio_playing = false;
             printf("SdAudio: Playback finished or error.\n");
             return;
         }
 
         buffer->sample_count = br / (wave_file_header.bitsPerSample / 8);
         give_audio_buffer(producer_pool, buffer);
+    }
+
+    if (!sd_audio_playing) {
+        stopPlayback();
     }
     // If buffer is NULL, it means no buffer is currently available,
     // so we wait for the next iteration of the loop. This is non-blocking.

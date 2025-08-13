@@ -157,9 +157,13 @@ audio_new_buffer_pool(audio_buffer_format_t *format, int buffer_count, int buffe
     audio_buffer_pool_t *ac = (audio_buffer_pool_t *) calloc(1, sizeof(audio_buffer_pool_t));
     audio_buffer_t *audio_buffers = buffer_count ? (audio_buffer_t *) calloc(buffer_count,
                                                                                        sizeof(audio_buffer_t)) : 0;
+    ac->audioBufferArrayToFree = audio_buffers;
+    ac->buffersToFreeCount = buffer_count;
+
     ac->format = format->format;
     for (int i = 0; i < buffer_count; i++) {
         audio_init_buffer(audio_buffers + i, format, buffer_sample_count);
+        ac->buffersToFree[i] = (audio_buffers + i)->buffer;
         audio_buffers[i].next = i != buffer_count - 1 ? &audio_buffers[i + 1] : NULL;
     }
     // todo one per channel?

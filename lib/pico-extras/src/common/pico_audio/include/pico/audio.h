@@ -84,7 +84,12 @@ typedef struct audio_buffer_pool {
     audio_buffer_t *free_list;
     spin_lock_t *prepared_list_spin_lock;
     audio_buffer_t *prepared_list;
-    audio_buffer_t *prepared_list_tail;
+    audio_buffer_t *prepared_list_tail;\
+
+    // for simple memory free
+    audio_buffer_t *audioBufferArrayToFree;
+    mem_buffer_t *buffersToFree[10];
+    int buffersToFreeCount;
 } audio_buffer_pool_t;
 
 typedef struct audio_connection audio_connection_t;

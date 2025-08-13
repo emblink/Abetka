@@ -180,6 +180,8 @@ bool audio_i2s_connect_extra(audio_buffer_pool_t *producer, bool buffer_on_give,
  */
 void audio_i2s_set_enabled(bool enabled);
 
+void audio_destroy_pool(audio_buffer_pool_t *pool);
+void audio_i2s_deinit(void);
 #ifdef __cplusplus
 }
 #endif
