@@ -1,7 +1,9 @@
+#include <assert.h>
 #include "appMode.h"
 #include "appModeIdle.h"
 #include "appModeRead.h"
 #include "appModeWrite.h"
+#include "appModeDischarged.h"
 #include "lvgl.h"
 
 static AppMode appMode = APP_MODE_IDLE;
@@ -26,6 +28,15 @@ void appModeProcess()
         case APP_MODE_UI_MENU:
             // Future use
             break;
+        case APP_MODE_DISCHARGED:
+            appModeDischargedProcess();
+            break;
+        case APP_MODE_SLEEP:
+            // TODO: O.T. process to sleep mode
+            break;
+        default:
+            assert(0);
+            break;
     }
 }
 
@@ -45,6 +56,15 @@ void appModeSwitch(AppMode newMode)
         case APP_MODE_UI_MENU:
             // Future use
             break;
+        case APP_MODE_DISCHARGED:
+            appModeDischargedExit();
+            break;
+        case APP_MODE_SLEEP:
+            // TODO: O.T. exit to sleep mode
+            break;
+        default:
+            assert(0);
+            break;
     }
 
     lv_obj_clean(lv_scr_act());
@@ -63,6 +83,15 @@ void appModeSwitch(AppMode newMode)
             break;
         case APP_MODE_UI_MENU:
             // Future use
+            break;
+        case APP_MODE_DISCHARGED:
+            appModeDischargedEnter();
+            break;
+        case APP_MODE_SLEEP:
+            // TODO: O.T. enter sleep mode
+            break;
+        default:
+            assert(0);
             break;
     }
 }

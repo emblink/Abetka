@@ -53,6 +53,7 @@ add_executable(Abetka
     src/appModeIdle.c
     src/appModeRead.c
     src/appModeWrite.c
+    src/appModeDischarged.c
     src/mifareHal.c
     src/keyScan.c
     src/uaSymbol.c
