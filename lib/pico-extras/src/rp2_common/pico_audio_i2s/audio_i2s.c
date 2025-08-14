@@ -155,7 +155,6 @@ static void wrap_producer_give(audio_connection_t *connection, audio_buffer_t *b
 #endif
 }
 
-// static struct buffer_copying_on_consumer_take_connection m2s_audio_i2s_ct_connection = {
 static struct buffer_copying_on_consumer_take_connection m2s_audio_i2s_ct_connection = {
         .core = {
                 .consumer_pool_take = wrap_consumer_take,
@@ -166,7 +165,6 @@ static struct buffer_copying_on_consumer_take_connection m2s_audio_i2s_ct_connec
 };
 
 static struct producer_pool_blocking_give_connection m2s_audio_i2s_pg_connection = {
-// static const struct producer_pool_blocking_give_connection m2s_audio_i2s_pg_connection = {
         .core = {
                 .consumer_pool_take = consumer_pool_take_buffer_default,
                 .consumer_pool_give = consumer_pool_give_buffer_default,
@@ -246,9 +244,8 @@ bool audio_i2s_connect_extra(audio_buffer_pool_t *producer, bool buffer_on_give,
         if (!buffer_count) {
             connection = &audio_i2s_pass_thru_connection.core;
         } else {
-            m2s_audio_i2s_ct_connection.core.producer_pool_take = producer_pool_take_buffer_default;
+            connection = buffer_on_give ? &m2s_audio_i2s_pg_connection.core : &m2s_audio_i2s_ct_connection.core;
         }
-        connection = (audio_connection_t *) (buffer_on_give ? &m2s_audio_i2s_pg_connection.core : &m2s_audio_i2s_ct_connection.core);
     }
     audio_complete_connection(connection, producer, audio_i2s_consumer);
     return true;
@@ -458,6 +455,8 @@ void audio_destroy_pool(audio_buffer_pool_t *pool) {
 void audio_i2s_deinit() {
     audio_i2s_set_enabled(false);
     pio_sm_unclaim(audio_pio, shared_state.pio_sm);
+    dma_channel_abort(shared_state.dma_channel);
+    dma_irqn_acknowledge_channel(PICO_AUDIO_I2S_DMA_IRQ, shared_state.dma_channel);
     dma_channel_unclaim(shared_state.dma_channel);
 
     pio_remove_program(audio_pio, &audio_i2s_program, shared_state.pio_program_offset);
