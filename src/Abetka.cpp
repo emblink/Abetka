@@ -104,8 +104,7 @@ int main()
     batteryInit();
     batteryPercent = batteryGetPercent();
     if (batteryPercent <= 0) {
-        // appModeSwitch(APP_MODE_DISCHARGED);
-        appModeSwitch(APP_MODE_IDLE);
+        appModeSwitch(APP_MODE_DISCHARGED);
     } else {
         appModeSwitch(APP_MODE_IDLE);
     }
