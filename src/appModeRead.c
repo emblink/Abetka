@@ -160,6 +160,11 @@ void appModeReadProcess()
         return;
     }
 
+    // Clear previous image before showing new symbol
+    if (imgWord) {
+        lv_obj_del(imgWord);
+        imgWord = NULL;
+    }
     updateUASymbolOnDisplay();
     playLetter();
     ws2812SetColor(GREEN);
