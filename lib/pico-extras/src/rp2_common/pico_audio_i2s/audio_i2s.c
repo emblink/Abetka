@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "pico/audio_i2s.h"
 #include "audio_i2s.pio.h"
@@ -36,6 +37,7 @@ struct {
     uint32_t freq;
     uint8_t pio_sm;
     uint8_t dma_channel;
+    uint pio_program_offset;
 } shared_state;
 
 audio_format_t pio_i2s_consumer_format;
@@ -70,6 +72,7 @@ const audio_format_t *audio_i2s_setup(const audio_format_t *intended_audio_forma
 #endif
         ;
     uint offset = pio_add_program(audio_pio, program);
+    shared_state.pio_program_offset = offset;
 
     audio_i2s_program_init(audio_pio, sm, offset, config->data_pin, config->clock_pin_base);
 
@@ -99,6 +102,7 @@ const audio_format_t *audio_i2s_setup(const audio_format_t *intended_audio_forma
 }
 
 static audio_buffer_pool_t *audio_i2s_consumer;
+static audio_buffer_pool_t *audio_i2s_producer;
 
 static void update_pio_frequency(uint32_t sample_freq) {
     uint32_t system_clock_frequency = clock_get_hz(clk_sys);
@@ -185,9 +189,9 @@ static struct producer_pool_blocking_give_connection audio_i2s_pass_thru_connect
                 .producer_pool_give = pass_thru_producer_give,
         }
 };
-
+#include "sdAudio.h"
 bool audio_i2s_connect_thru(audio_buffer_pool_t *producer, audio_connection_t *connection) {
-    return audio_i2s_connect_extra(producer, false, 2, 256, connection);
+    return audio_i2s_connect_extra(producer, false, 2, SAMPLES_PER_BUFFER, connection);
 }
 
 bool audio_i2s_connect(audio_buffer_pool_t *producer) {
@@ -211,7 +215,7 @@ bool audio_i2s_connect_extra(audio_buffer_pool_t *producer, bool buffer_on_give,
     pio_i2s_consumer_format.channel_count = 2;
     pio_i2s_consumer_buffer_format.sample_stride = 4;
 #endif
-
+    audio_i2s_producer = producer;
     audio_i2s_consumer = audio_new_consumer_pool(&pio_i2s_consumer_buffer_format, buffer_count, samples_per_buffer);
 
     update_pio_frequency(producer->format->sample_freq);
@@ -237,10 +241,11 @@ bool audio_i2s_connect_extra(audio_buffer_pool_t *producer, bool buffer_on_give,
             printf("Converting mono to stereo at %d Hz\n", (int) producer->format->sample_freq);
 #endif
         }
-        if (!buffer_count)
+        if (!buffer_count) {
             connection = &audio_i2s_pass_thru_connection.core;
-        else
+        } else {
             connection = buffer_on_give ? &m2s_audio_i2s_pg_connection.core : &m2s_audio_i2s_ct_connection.core;
+        }
     }
     audio_complete_connection(connection, producer, audio_i2s_consumer);
     return true;
@@ -393,4 +398,83 @@ void audio_i2s_set_enabled(bool enabled) {
 
         audio_enabled = enabled;
     }
+}
+
+// void audio_init_buffer(audio_buffer_t *audio_buffer, audio_buffer_format_t *format, int buffer_sample_count) {
+//     audio_buffer->format = format;
+//     audio_buffer->buffer = pico_buffer_alloc(buffer_sample_count * format->sample_stride);
+//     audio_buffer->max_sample_count = buffer_sample_count;
+//     audio_buffer->sample_count = 0;
+// }
+
+// audio_buffer_pool_t *
+// audio_new_buffer_pool(audio_buffer_format_t *format, int buffer_count, int buffer_sample_count) {
+//     audio_buffer_pool_t *ac = (audio_buffer_pool_t *) calloc(1, sizeof(audio_buffer_pool_t));
+//     audio_buffer_t *audio_buffers = buffer_count ? (audio_buffer_t *) calloc(buffer_count,
+//                                                                                        sizeof(audio_buffer_t)) : 0;
+//     ac->format = format->format;
+//     for (int i = 0; i < buffer_count; i++) {
+//         audio_init_buffer(audio_buffers + i, format, buffer_sample_count);
+//         audio_buffers[i].next = i != buffer_count - 1 ? &audio_buffers[i + 1] : NULL;
+//     }
+//     // todo one per channel?
+//     ac->free_list_spin_lock = spin_lock_init(SPINLOCK_ID_AUDIO_FREE_LIST_LOCK);
+//     ac->free_list = audio_buffers;
+//     ac->prepared_list_spin_lock = spin_lock_init(SPINLOCK_ID_AUDIO_PREPARED_LISTS_LOCK);
+//     ac->prepared_list = NULL;
+//     ac->prepared_list_tail = NULL;
+//     ac->connection = &connection_default;
+//     return ac;
+// }
+
+// Function to deallocate an audio buffer pool.
+// This function frees the audio_buffer_pool_t structure,
+// the array of audio_buffer_t structures,
+// and the mem_buffer_t structures along with their data buffers
+void audio_destroy_pool(audio_buffer_pool_t *pool) {
+    if (pool == NULL) {
+        return;
+    }
+
+    for (int i = 0; i < pool->buffersToFreeCount; i++) {
+        if (pool->buffersToFree[i]) {
+            if (pool->buffersToFree[i]->bytes) {
+                free(pool->buffersToFree[i]->bytes);
+                pool->buffersToFree[i]->bytes = NULL;
+            }
+
+            free(pool->buffersToFree[i]);
+            pool->buffersToFree[i] = NULL;
+        }
+    }
+    free(pool->audioBufferArrayToFree);
+    pool->audioBufferArrayToFree = NULL;
+    free(pool);
+}
+
+void audio_i2s_deinit() {
+    audio_i2s_set_enabled(false);
+    pio_sm_unclaim(audio_pio, shared_state.pio_sm);
+    dma_channel_abort(shared_state.dma_channel);
+    dma_irqn_acknowledge_channel(PICO_AUDIO_I2S_DMA_IRQ, shared_state.dma_channel);
+    dma_channel_unclaim(shared_state.dma_channel);
+
+    pio_remove_program(audio_pio, &audio_i2s_program, shared_state.pio_program_offset);
+    pio_clear_instruction_memory(audio_pio);
+
+    shared_state.playing_buffer = NULL;
+    shared_state.freq = 0;
+
+    if (audio_i2s_consumer) {
+        audio_destroy_pool(audio_i2s_consumer);
+        audio_i2s_consumer = NULL;
+    }
+
+    if (audio_i2s_producer) {
+        audio_destroy_pool(audio_i2s_producer);
+        audio_i2s_producer = NULL;
+    }
+
+    irq_remove_handler(DMA_IRQ_0 + PICO_AUDIO_I2S_DMA_IRQ, audio_i2s_dma_irq_handler);
+    // spin_locks_reset(); // TODO: figure out how to properly free locks
 }

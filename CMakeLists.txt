@@ -53,6 +53,7 @@ add_executable(Abetka
     src/appModeIdle.c
     src/appModeRead.c
     src/appModeWrite.c
+    src/appModeDischarged.c
     src/mifareHal.c
     src/keyScan.c
     src/uaSymbol.c
@@ -114,6 +115,7 @@ target_link_libraries(Abetka
 
 target_compile_definitions(Abetka PRIVATE
     PICO_AUDIO_I2S_MONO_INPUT=1
+    PICO_AUDIO_I2S_MONO_OUTPUT=1
     USE_AUDIO_I2S=1
     PICO_AUDIO_I2S_PIO=1
 )
