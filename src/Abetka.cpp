@@ -44,16 +44,34 @@ static uint32_t getTimeMs(void) {
     return to_ms_since_boot(get_absolute_time());
 }
 
+static void updateBatteryPercent()
+{
+    static lv_obj_t * batLabel = NULL; 
+    if (NULL == batLabel) {
+        batLabel = lv_label_create(lv_layer_top()); // special layer over any other screen
+        lv_obj_set_style_text_font(batLabel, &lv_font_montserrat_14, LV_PART_MAIN);
+        lv_obj_set_style_text_color(batLabel, lv_color_hex(0xffffff), LV_PART_MAIN);
+        lv_obj_align(batLabel, LV_ALIGN_TOP_RIGHT, 0, 0);
+    }
+
+    char batteryLableText[20] = {'\0'};
+    sprintf(batteryLableText, "%d%%", batteryPercent);
+    lv_label_set_text(batLabel, batteryLableText);
+}
+
 void batteryProcess()
 {
     if (getTimeMs() - lastBatteryCheckMs < BATTERY_CHECK_PERIOD_MS) {
         return;
     }
-
+    
+    lastBatteryCheckMs = getTimeMs();
     batteryPercent = batteryGetPercent();
     if (batteryPercent <= 0) {
         appModeSwitch(APP_MODE_DISCHARGED);
     }
+
+    updateBatteryPercent();
 }
 
 static void st7789SendCmdCb(lv_display_t * disp, const uint8_t * cmd, size_t cmd_size,
@@ -103,6 +121,7 @@ int main()
     
     batteryInit();
     batteryPercent = batteryGetPercent();
+    updateBatteryPercent();
     if (batteryPercent <= 0) {
         appModeSwitch(APP_MODE_DISCHARGED);
     } else {
@@ -112,10 +131,7 @@ int main()
     // TODO: O.T. Implement indication module (e.g. LED or screen feedback)
     // TODO: O.T. Add multiple example words for each letter
     // TODO: O.T add idle timeout and sleep mode
-    // TODO: O.T fix blocking audio, consider to use another i2s module, links
     // TODO: O.T fix display flickering during audio playback
-    // https://github.com/raspberrypi/pico-extras/tree/master/src/rp2_common/pico_audio_i2s
-    // https://github.com/raspberrypi/pico-playground/blob/master/audio/sine_wave/sine_wave.c
 
     while(1)
     {
