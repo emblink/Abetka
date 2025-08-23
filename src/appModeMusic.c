@@ -93,7 +93,10 @@ static void showSongCoverArt(const char *songName)
     extern const lv_font_t lv_font_montserrat_14;
     lv_obj_set_style_text_font(songLable, &lv_font_montserrat_14, LV_PART_MAIN);
     lv_obj_set_style_text_color(songLable, lv_color_white(), LV_PART_MAIN);
-    lv_obj_align(songLable, LV_ALIGN_TOP_MID, 0, 0);
+    lv_obj_set_style_bg_opa(songLable, LV_OPA_50, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(songLable, lv_color_make(0x80, 0x80, 0x80), LV_PART_MAIN); // grey
+
+    lv_obj_align(songLable, LV_ALIGN_TOP_LEFT, 0, 0);
     lv_label_set_text(songLable, songName);
 }
 

@@ -51,7 +51,16 @@ static void updateBatteryPercent()
         batLabel = lv_label_create(lv_layer_top()); // special layer over any other screen
         lv_obj_set_style_text_font(batLabel, &lv_font_montserrat_14, LV_PART_MAIN);
         lv_obj_set_style_text_color(batLabel, lv_color_hex(0xffffff), LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(batLabel, LV_OPA_50, LV_PART_MAIN);
         lv_obj_align(batLabel, LV_ALIGN_TOP_RIGHT, 0, 0);
+    }
+
+    if (batteryPercent >= 70) {
+        lv_obj_set_style_bg_color(batLabel, lv_color_make(0, 0x80, 0), LV_PART_MAIN); // green
+    } else if (batteryPercent >= 35) {
+        lv_obj_set_style_bg_color(batLabel, lv_color_make(0xC8, 0xFF, 0), LV_PART_MAIN); // yellow / green
+    } else {
+        lv_obj_set_style_bg_color(batLabel, lv_color_make(0xFF, 0, 0), LV_PART_MAIN); // red
     }
 
     char batteryLableText[20] = {'\0'};
@@ -112,7 +121,7 @@ int main()
     lv_st7789_set_gap(display, X_OFFSET, 0);
     lv_st7789_set_invert(display, true);
     lv_st7789_set_gamma_curve(display, 2);
-    lv_display_set_buffers(display, (void *) frameBuff, NULL, sizeof(frameBuff), LV_DISPLAY_RENDER_MODE_FULL);
+    lv_display_set_buffers(display, (void *) frameBuff, NULL, sizeof(frameBuff), LV_DISPLAY_RENDER_MODE_PARTIAL);
 
     ws2812Init();
     sdCardInit();
