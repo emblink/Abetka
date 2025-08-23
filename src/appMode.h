@@ -7,8 +7,9 @@ extern "C" {
 typedef enum {
     APP_MODE_IDLE,
     APP_MODE_READ_CARD,
+    APP_MODE_MUSIC,
     APP_MODE_WRITE_CARD,
-    APP_MODE_UI_MENU,   // Optional: future expansion
+    APP_MODE_MENU,
     APP_MODE_SLEEP,
     APP_MODE_DISCHARGED,
 } AppMode;

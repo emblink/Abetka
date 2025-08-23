@@ -127,9 +127,10 @@ int main()
     } else {
         appModeSwitch(APP_MODE_IDLE);
     }
-
+    
+    // TODO: O.T add English assets
+    // TODO: O.T fix battery measurements accuracy
     // TODO: O.T. Implement indication module (e.g. LED or screen feedback)
-    // TODO: O.T. Add multiple example words for each letter
     // TODO: O.T add idle timeout and sleep mode
     // TODO: O.T fix display flickering during audio playback
 

@@ -4,6 +4,8 @@
 #include "appModeRead.h"
 #include "appModeWrite.h"
 #include "appModeDischarged.h"
+#include "appModeMenu.h"
+#include "appModeMusic.h"
 #include "lvgl.h"
 
 static AppMode appMode = APP_MODE_IDLE;
@@ -25,8 +27,11 @@ void appModeProcess()
         case APP_MODE_WRITE_CARD:
             appModeWriteProcess();
             break;
-        case APP_MODE_UI_MENU:
-            // Future use
+        case APP_MODE_MUSIC:
+            appModeMusicProcess();
+            break;
+        case APP_MODE_MENU:
+            appModeMenuProcess();
             break;
         case APP_MODE_DISCHARGED:
             appModeDischargedProcess();
@@ -53,8 +58,11 @@ void appModeSwitch(AppMode newMode)
         case APP_MODE_WRITE_CARD:
             appModeWriteExit();
             break;
-        case APP_MODE_UI_MENU:
-            // Future use
+        case APP_MODE_MUSIC:
+            appModeMusicExit();
+            break;
+        case APP_MODE_MENU:
+            appModeMenuExit();
             break;
         case APP_MODE_DISCHARGED:
             appModeDischargedExit();
@@ -81,8 +89,11 @@ void appModeSwitch(AppMode newMode)
         case APP_MODE_WRITE_CARD:
             appModeWriteEnter();
             break;
-        case APP_MODE_UI_MENU:
-            // Future use
+        case APP_MODE_MUSIC:
+            appModeMusicEnter();
+            break;
+        case APP_MODE_MENU:
+            appModeMenuEnter();
             break;
         case APP_MODE_DISCHARGED:
             appModeDischargedEnter();

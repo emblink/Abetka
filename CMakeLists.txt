@@ -51,6 +51,8 @@ add_executable(Abetka
     src/lv_font_ukrainian_48.c
     src/appMode.c
     src/appModeIdle.c
+    src/appModeMenu.c
+    src/appModeMusic.c
     src/appModeRead.c
     src/appModeWrite.c
     src/appModeDischarged.c

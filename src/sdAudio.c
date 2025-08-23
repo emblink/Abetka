@@ -133,3 +133,18 @@ void sdAudioProcess() {
         give_audio_buffer(producer_pool, buffer);
     }
 }
+
+bool sdAudioIsPlaying()
+{
+    return sd_audio_playing;
+}
+
+void sdAudioStop()
+{
+    if (sd_audio_playing) {
+        stopPlayback();
+        f_close(&sd_audio_file);
+        memset(&sd_audio_file, 0, sizeof(sd_audio_file));
+        sd_audio_playing = false;
+    }
+}

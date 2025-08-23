@@ -7,7 +7,7 @@
 static void processInput(Key key, KeyState event)
 {
     if (KEY_STATE_PRESSED == event) {
-        appModeSwitch(APP_MODE_READ_CARD);
+        appModeSwitch(APP_MODE_MENU);
     }
 }
 
