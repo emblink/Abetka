@@ -149,7 +149,6 @@ int main()
     }
     
     // TODO: O.T add English assets
-    // TODO: O.T fix battery measurements accuracy
     // TODO: O.T. Implement indication module (e.g. LED or screen feedback)
     // TODO: O.T add idle timeout and sleep mode
     // TODO: O.T fix display flickering during audio playback

@@ -20,13 +20,16 @@ static int32_t lastVoltageMv = 0;
 static uint8_t lastPercent = 0;
 
 static const BatteryLevel batteryCurve[] = {
-    {0,   3312},
-    {10,  3670},
-    {30,  3754},
-    {50,  3795},
-    {70,  3905},
-    {90,  4043},
-    {100, 4150},
+    {0,   3000},
+    {10,  3450},
+    {20,  3600},
+    {30,  3700},
+    {50,  3750},
+    {60,  3780},
+    {70,  3850},
+    {80,  3920},
+    {90,  3980},
+    {100, 4050},
 };
 
 static int32_t interpolate(BatteryLevel startPoint, BatteryLevel endPoint, int32_t currentVoltageMv)
@@ -50,14 +53,14 @@ int32_t batteryGetPercent()
     uint32_t sum = 0;
     for (int i = 0; i < SAMPLE_COUNT; i++) {
         sum += adc_read();
-        sleep_ms(2);
     }
 
     uint32_t avgAdc = sum / SAMPLE_COUNT;
 
     // Convert to mV: adc * VREF / 4095 * (divider ratio)
     // voltageMv = (adc * 3300 / 4095) * 2
-    int32_t adcMv = (avgAdc * VREF_MV) / ADC_MAX;
+    #define ADJUSTMENT_MV 80 // experimental compensatory value added in order to match the real voltage
+    int32_t adcMv = (avgAdc * VREF_MV) / ADC_MAX + ADJUSTMENT_MV;
     int32_t batteryVoltageMv = adcMv * VOLTAGE_DIVIDER_RATIO;
 
     lastVoltageMv = batteryVoltageMv;
