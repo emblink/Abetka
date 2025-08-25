@@ -48,9 +48,9 @@
 #define BATTERY_ADC_PIN         26
 #define BATTERY_ADC_CHANNEL     0
 
-#define KEY_LEFT_GPIO           2
-#define KEY_RIGHT_GPIO          1
-#define KEY_UP_GPIO             7
-#define KEY_DOWN_GPIO           3
+#define KEY_LEFT_GPIO           3
+#define KEY_RIGHT_GPIO          7
+#define KEY_UP_GPIO             1
+#define KEY_DOWN_GPIO           2
 #define KEY_SELECT_GPIO         0
 #define KEY_USER_GPIO           24

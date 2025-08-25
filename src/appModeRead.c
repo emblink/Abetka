@@ -90,25 +90,20 @@ static Node* getLastNode(Node* head)
 static void processInput(Key key, KeyState event)
 {
     switch (key) {
-    case KEY_SELECT:
-        if (KEY_STATE_PRESSED == event) {
-            playSound();
-        } else if (KEY_STATE_HOLD == event) {
-            appModeSwitch(APP_MODE_WRITE_CARD);
-        }
-        break;
-    
     case KEY_LEFT:
-        if (currentWord && KEY_STATE_PRESSED == event) {
-            currentWord = currentWord->prev ? currentWord->prev : getLastNode(wordsList);
-            playWord();
+        if (KEY_STATE_HOLD == event) {
+            appModeSwitch(APP_MODE_MENU);
+        } else if (KEY_STATE_PRESSED == event) {
+            playSound();
         }
         break;
 
     case KEY_RIGHT:
-        if (currentWord && KEY_STATE_PRESSED == event) {
-            currentWord = currentWord->next ? currentWord->next : wordsList;
-            playWord();
+        if (KEY_STATE_PRESSED == event) {
+            if (currentWord) {
+                currentWord = currentWord->next ? currentWord->next : wordsList;
+                playWord();
+            }
         }
         break;
 

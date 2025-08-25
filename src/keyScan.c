@@ -10,6 +10,7 @@ typedef struct {
     uint32_t holdUs;
     KeyState lastState;
     KeyState currentState;
+    bool wasPressed;
 } KeyData;
 
 #define KEYSCAN_INTERVAL_US 500
@@ -48,19 +49,26 @@ bool keyScanTimercb(repeating_timer_t *t) {
             anyPressed = true;
             keys[key].threshold = PRESS_THRESHOLD;
 
-            if (KEY_STATE_RELEASED == keys[key].currentState) {
-                keys[key].currentState = KEY_STATE_PRESSED;
-                keys[key].holdUs = 0;
-            } else if (KEY_STATE_PRESSED == keys[key].currentState) {
+            // should mark it as pressed but not report yet, maybe it's a hold action
+            if (KEY_STATE_HOLD != keys[key].currentState) {
+                keys[key].wasPressed = true;
                 keys[key].holdUs += KEYSCAN_INTERVAL_US;
                 if (keys[key].holdUs >= HOLD_DURATION_US) {
                     keys[key].currentState = KEY_STATE_HOLD;
-                    keys[key].holdUs = HOLD_DURATION_US;
+                    keys[key].holdUs = 0;
+                    keys[key].wasPressed = false;
                 }
             }
         } else if (keys[key].threshold <= RELEASE_THRESHOLD) {
             keys[key].threshold = RELEASE_THRESHOLD;
-            keys[key].currentState = KEY_STATE_RELEASED;
+
+            if (keys[key].wasPressed) { // report short press after key release if hold didn't happend
+                keys[key].currentState = KEY_STATE_PRESSED;
+                keys[key].wasPressed = false;
+                anyPressed = true; // hack to repeat the loop one more time in order to send release after the press
+            } else {
+                keys[key].currentState = KEY_STATE_RELEASED;
+            }
             keys[key].holdUs = 0;
         } else {
             anyPressed = true; // still bouncing
@@ -112,13 +120,13 @@ bool keyScanIsKeyPressed(Key key)
 {
     assert(key < KEY_COUNT);
 
-    switch (keys[key].currentState) {
-        case KEY_STATE_PRESSED:
-        case KEY_STATE_HOLD:
-        case KEY_STATE_LONG_HOLD:
-            return true;
-        default:
-            break;
+    int32_t threshold = 0;
+    for (int i = 0; i < PRESS_THRESHOLD; i++) {
+        threshold += !gpio_get(keys[key].gpio) ? 1 : -1;
+    }
+
+    if (threshold >= PRESS_THRESHOLD) {
+        return true;
     }
 
     return false;
