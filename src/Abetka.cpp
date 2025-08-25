@@ -134,7 +134,18 @@ int main()
     if (batteryPercent <= 0) {
         appModeSwitch(APP_MODE_DISCHARGED);
     } else {
-        appModeSwitch(APP_MODE_IDLE);
+        bool enterWriteMode = false;
+        uint32_t timeout = 0;
+        #define WRITE_MODE_TIMEOUT_MS 2000
+        while (keyScanGetKeyState(KEY_RIGHT) && timeout < WRITE_MODE_TIMEOUT_MS) {
+            timeout++;
+            sleep_ms(1);
+        }
+        if (timeout >= WRITE_MODE_TIMEOUT_MS) {
+            appModeSwitch(APP_MODE_WRITE_CARD);
+        } else {
+            appModeSwitch(APP_MODE_IDLE);
+        }
     }
     
     // TODO: O.T add English assets

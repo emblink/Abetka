@@ -234,38 +234,25 @@ static void menuLettersProcess(void)
 
 static void processLanguageMenuInput(Key key, KeyState event)
 {
-    if (KEY_STATE_PRESSED != event) {
-        return;
-    }
-
     switch (key) {
-    case KEY_UP:
-        if (menuLanguage.selectedLang && menuLanguage.selectedLang->prev) {
-            menuLanguage.selectedLang = menuLanguage.selectedLang->prev;
-        } else if (menuLanguage.langListHead) {
-             Node * temp = menuLanguage.langListHead;
-             while(temp && temp->next) {
-                 temp = temp->next;
-             }
-             menuLanguage.selectedLang = temp;
-        }
-        updateLanguageListHighlight();
-        break;
-    case KEY_DOWN:
-        if (menuLanguage.selectedLang && menuLanguage.selectedLang->next) {
-            menuLanguage.selectedLang = menuLanguage.selectedLang->next;
-        } else if (menuLanguage.langListHead) {
-            menuLanguage.selectedLang = menuLanguage.langListHead;
-        }
-        updateLanguageListHighlight();
-        break;
-    case KEY_SELECT:
-        if (menuLanguage.selectedLang) {
-            menuSwitch(MENU_LETTERS);
-        }
-        break;
     case KEY_LEFT:
-        appModeSwitch(APP_MODE_READ_CARD);
+        if (KEY_STATE_HOLD == event) {
+            appModeSwitch(APP_MODE_MENU);
+        } else if (KEY_STATE_PRESSED == event) {
+            if (menuLanguage.selectedLang) {
+                menuSwitch(MENU_LETTERS);
+            }
+        }
+        break;
+    case KEY_RIGHT:
+        if (KEY_STATE_PRESSED == event) {
+            if (menuLanguage.selectedLang && menuLanguage.selectedLang->next) {
+                menuLanguage.selectedLang = menuLanguage.selectedLang->next;
+            } else if (menuLanguage.langListHead) {
+                menuLanguage.selectedLang = menuLanguage.langListHead;
+            }
+            updateLanguageListHighlight();
+        }
         break;
     default:
         break;
@@ -307,33 +294,32 @@ void menuLanguageExit(void)
 
 void processLettersMenuInput(Key key, KeyState event)
 {
-    if (KEY_STATE_PRESSED != event) {
-        return;
-    }
-
     switch (key) {
-    case KEY_UP:
-        if (menuLetter.selectedLetter && menuLetter.selectedLetter->prev) {
-            menuLetter.selectedLetter = menuLetter.selectedLetter->prev;
-        } else if (menuLetter.letterListHead) {
-             Node * head = menuLetter.letterListHead;
-             while (head && head->next) {
-                 head = head->next;
-             }
-             menuLetter.selectedLetter = head;
-        }
-        updateSelectedLetter();
-        break;
-    case KEY_DOWN:
-        if (menuLetter.selectedLetter && menuLetter.selectedLetter->next) {
-            menuLetter.selectedLetter = menuLetter.selectedLetter->next;
-        } else if (menuLetter.letterListHead) {
-            menuLetter.selectedLetter = menuLetter.letterListHead;
-        }
-        updateSelectedLetter();
-        break;
     case KEY_LEFT:
-        menuSwitch(MENU_LANGUAGE);
+        if (KEY_STATE_HOLD == event) {
+            menuSwitch(MENU_LANGUAGE);
+        } else if (KEY_STATE_PRESSED == event) {
+            if (menuLetter.selectedLetter && menuLetter.selectedLetter->prev) {
+                menuLetter.selectedLetter = menuLetter.selectedLetter->prev;
+            } else if (menuLetter.letterListHead) {
+                Node * head = menuLetter.letterListHead;
+                while (head && head->next) {
+                    head = head->next;
+                }
+                menuLetter.selectedLetter = head;
+            }
+            updateSelectedLetter();
+        }
+        break;
+    case KEY_RIGHT:
+        if (KEY_STATE_PRESSED == event) {
+            if (menuLetter.selectedLetter && menuLetter.selectedLetter->next) {
+                menuLetter.selectedLetter = menuLetter.selectedLetter->next;
+            } else if (menuLetter.letterListHead) {
+                menuLetter.selectedLetter = menuLetter.letterListHead;
+            }
+            updateSelectedLetter();
+        }
         break;
     default:
         break;
