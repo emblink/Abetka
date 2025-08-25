@@ -20,10 +20,12 @@ typedef enum {
 } Key;
 
 typedef void (* KeyCallback)(Key key, KeyState event);
+typedef void (* IdleCallback)(void);
 
 #define HOLD_DURATION_US (1000 * 1000)
 
 void keyScanInit(KeyCallback callback);
+void keyScanSetIdleCallback(IdleCallback callback);
 bool keyScanIsKeyPressed(Key key); // get buffered value
 bool keyScanGetKeyState(Key key); // measure current state
 void keyScanProcess();

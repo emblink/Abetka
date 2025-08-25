@@ -15,12 +15,14 @@
 #include "sdAudio.h"
 #include "sdCard.h"
 #include "pinout.h"
+#include "general.h"
 
 // How to build without optimizations
 // cmake -DCMAKE_BUILD_TYPE=Debug -DPICO_DEOPTIMIZED_DEBUG=1 ..
 // ninja
 
 #define BATTERY_CHECK_PERIOD_MS (60 * 1000)
+#define IDLE_TIMEOUT_MS (10 * 1000)
 
 // lcd configuration
 static const struct st7789_config lcd_config = {
@@ -38,10 +40,22 @@ static uint16_t frameBuff[lcd_width * lcd_height] = {0};
 static lv_display_t * display = NULL;
 static uint32_t lastBatteryCheckMs = 0;
 static int32_t batteryPercent = 100;
+static uint32_t lastActionMs = 0;
 
-// Millisecond timestamp — you need this for `lv_tick_inc`
-static uint32_t getTimeMs(void) {
-    return to_ms_since_boot(get_absolute_time());
+static void idleTimerResetCallback(void)
+{
+    lastActionMs = getTimeMs();
+}
+
+static void idleTimeoutProcess(void)
+{
+    if (sdAudioIsPlaying()) {
+        idleTimerResetCallback();
+    }
+
+    if (getTimeMs() - lastActionMs > IDLE_TIMEOUT_MS) {
+        appModeSwitch(APP_MODE_SLEEP);
+    }
 }
 
 static void updateBatteryPercent()
@@ -126,7 +140,7 @@ int main()
     ws2812Init();
     sdCardInit();
     mifareHalInit();
-    sdAudioPlayFile((char *) "misc/powerOn.wav");
+    keyScanSetIdleCallback(idleTimerResetCallback);
     
     batteryInit();
     batteryPercent = batteryGetPercent();
@@ -145,6 +159,7 @@ int main()
             appModeSwitch(APP_MODE_WRITE_CARD);
         } else {
             appModeSwitch(APP_MODE_IDLE);
+            sdAudioPlayFile((char *) "misc/powerOn.wav");
         }
     }
     
@@ -159,6 +174,7 @@ int main()
         batteryProcess();
         appModeProcess();
         sdAudioProcess();
+        idleTimeoutProcess();
         tud_task();
         lv_timer_handler();
         // TODO: O.T Add power detect, sleep cases USB enumeration to fail

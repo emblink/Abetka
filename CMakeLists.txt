@@ -66,6 +66,7 @@ add_executable(Abetka
     src/sdAudio.c
     src/sdCard.c
     src/pio_spi.c
+    src/general.c
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/generated)

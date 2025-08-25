@@ -5,6 +5,7 @@
 #include "hardware/sync.h"
 #include "hardware/gpio.h"
 #include "pico/time.h"
+#include "general.h"
 
 // Static variables to manage the state
 static lv_obj_t *discharged_label = NULL;
@@ -36,7 +37,7 @@ void appModeDischargedEnter()
     lv_obj_center(discharged_label); // Center the label on the screen
 
     // Record the start time for the timeout
-    process_start_time_us = time_us_64();
+    process_start_time_us = getTimeMs();
 }
 
 /**
@@ -46,7 +47,7 @@ void appModeDischargedEnter()
 void appModeDischargedProcess()
 {
     // Check if timeout have passed
-    if ((time_us_64() - process_start_time_us) > 2000) {
+    if ((getTimeMs() - process_start_time_us) > 2000) {
         appModeSwitch(APP_MODE_SLEEP); // Switch to a sleep mode
     }
 }

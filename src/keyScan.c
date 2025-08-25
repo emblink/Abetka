@@ -23,6 +23,7 @@ static volatile KeyData keys[KEY_COUNT] = {
     [KEY_USER].gpio = KEY_USER_GPIO,
 };
 static volatile KeyCallback keyCb = NULL;
+static volatile IdleCallback idleCb = NULL;
 static volatile bool isKeyScanTimerActive = false;
 static repeating_timer_t keyScanTimer;
 
@@ -110,6 +111,11 @@ void keyScanInit(KeyCallback callback)
     }
 }
 
+void keyScanSetIdleCallback(IdleCallback callback)
+{
+    idleCb = callback;
+}
+
 bool keyScanIsKeyPressed(Key key)
 {
     assert(key < KEY_COUNT);
@@ -169,6 +175,10 @@ void keyScanProcess()
     for (size_t i = 0; i < pendingEventCount; i++) {
         if (keyCb) {
             keyCb(pendingEvents[i].key, pendingEvents[i].state);
+        }
+
+        if (idleCb) {
+            idleCb();
         }
     }
 }
