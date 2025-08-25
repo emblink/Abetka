@@ -28,13 +28,15 @@ void appModeDischargedEnter()
 
     // Create a label to show the warning message
     discharged_label = lv_label_create(lv_screen_active());
-    lv_label_set_text(discharged_label, "Low Battery");
+    lv_label_set_text(discharged_label, "Low\nBattery");
     
     // Set a larger font and white text color for visibility
-    lv_obj_set_style_text_font(discharged_label, &lv_font_montserrat_14, LV_PART_MAIN);
+    lv_obj_set_style_text_font(discharged_label, &lv_font_montserrat_48, LV_PART_MAIN);
     lv_obj_set_style_text_color(discharged_label, lv_color_hex(0xFFFFFF), LV_PART_MAIN); 
 
-    lv_obj_center(discharged_label); // Center the label on the screen
+    lv_obj_align(discharged_label, LV_ALIGN_CENTER, 0, 0);
+    // Set the text alignment within the label to center
+    lv_obj_set_style_text_align(discharged_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
 
     // Record the start time for the timeout
     process_start_time_us = getTimeMs();
