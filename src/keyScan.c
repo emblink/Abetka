@@ -20,9 +20,6 @@ typedef struct {
 static volatile KeyData keys[KEY_COUNT] = {
     [KEY_LEFT].gpio = KEY_LEFT_GPIO,
     [KEY_RIGHT].gpio = KEY_RIGHT_GPIO,
-    [KEY_UP].gpio = KEY_UP_GPIO,
-    [KEY_DOWN].gpio = KEY_DOWN_GPIO,
-    [KEY_SELECT].gpio = KEY_SELECT_GPIO,
     [KEY_USER].gpio = KEY_USER_GPIO,
 };
 static volatile KeyCallback keyCb = NULL;
@@ -65,9 +62,6 @@ bool keyScanTimercb(repeating_timer_t *t) {
             if (keys[key].wasPressed) { // report short press after key release if hold didn't happend
                 keys[key].currentState = KEY_STATE_PRESSED;
                 keys[key].wasPressed = false;
-                anyPressed = true; // hack to repeat the loop one more time in order to send release after the press
-            } else {
-                keys[key].currentState = KEY_STATE_RELEASED;
             }
             keys[key].holdUs = 0;
         } else {
@@ -120,6 +114,21 @@ bool keyScanIsKeyPressed(Key key)
 {
     assert(key < KEY_COUNT);
 
+    switch (keys[key].currentState) {
+        case KEY_STATE_PRESSED:
+        case KEY_STATE_HOLD:
+            return true;
+        default:
+            break;
+    }
+
+    return false;
+}
+
+bool keyScanGetKeyState(Key key)
+{
+    assert(key < KEY_COUNT);
+
     int32_t threshold = 0;
     for (int i = 0; i < PRESS_THRESHOLD; i++) {
         threshold += !gpio_get(keys[key].gpio) ? 1 : -1;
@@ -147,7 +156,10 @@ void keyScanProcess()
             pendingEvents[pendingEventCount].key = key;
             pendingEvents[pendingEventCount].state = keys[key].currentState;
             pendingEventCount++;
-            keys[key].lastState = keys[key].currentState; 
+            keys[key].lastState = keys[key].currentState;
+            if (KEY_STATE_PRESSED == keys[key].currentState) {
+                keys[key].currentState = KEY_STATE_RELEASED;
+            }
         }
     }
     restore_interrupts(status);
