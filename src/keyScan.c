@@ -128,6 +128,7 @@ bool keyScanIsKeyPressed(Key key)
 bool keyScanGetKeyState(Key key)
 {
     assert(key < KEY_COUNT);
+    keyInit(key);
 
     int32_t threshold = 0;
     for (int i = 0; i < PRESS_THRESHOLD; i++) {
