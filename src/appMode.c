@@ -6,6 +6,7 @@
 #include "appModeDischarged.h"
 #include "appModeMenu.h"
 #include "appModeMusic.h"
+#include "appModeSleep.h"
 #include "lvgl.h"
 
 static AppMode appMode = APP_MODE_IDLE;
@@ -37,7 +38,7 @@ void appModeProcess()
             appModeDischargedProcess();
             break;
         case APP_MODE_SLEEP:
-            // TODO: O.T. process to sleep mode
+            appModeSleepProcess();
             break;
         default:
             assert(0);
@@ -68,7 +69,7 @@ void appModeSwitch(AppMode newMode)
             appModeDischargedExit();
             break;
         case APP_MODE_SLEEP:
-            // TODO: O.T. exit to sleep mode
+            appModeSleepExit();
             break;
         default:
             assert(0);
@@ -80,7 +81,6 @@ void appModeSwitch(AppMode newMode)
 
     switch (newMode) {
         case APP_MODE_IDLE:
-            // Maybe display idle screen or animation
             appModeIdleEnter();
             break;
         case APP_MODE_READ_CARD:
@@ -99,7 +99,7 @@ void appModeSwitch(AppMode newMode)
             appModeDischargedEnter();
             break;
         case APP_MODE_SLEEP:
-            // TODO: O.T. enter sleep mode
+            appModeSleepEnter();
             break;
         default:
             assert(0);

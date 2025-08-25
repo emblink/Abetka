@@ -56,6 +56,7 @@ add_executable(Abetka
     src/appModeRead.c
     src/appModeWrite.c
     src/appModeDischarged.c
+    src/appModeSleep.c
     src/mifareHal.c
     src/keyScan.c
     src/uaSymbol.c
@@ -113,7 +114,8 @@ target_link_libraries(Abetka
         tinyusb_additions
         tinyusb_board
         tinyusb_device
-         pico_audio_i2s
+        pico_audio_i2s
+        hardware_sleep
         )
 
 target_compile_definitions(Abetka PRIVATE

@@ -22,7 +22,7 @@
 // ninja
 
 #define BATTERY_CHECK_PERIOD_MS (60 * 1000)
-#define IDLE_TIMEOUT_MS (10 * 1000)
+#define IDLE_TIMEOUT_MS (120 * 1000)
 
 // lcd configuration
 static const struct st7789_config lcd_config = {
@@ -54,7 +54,9 @@ static void idleTimeoutProcess(void)
     }
 
     if (getTimeMs() - lastActionMs > IDLE_TIMEOUT_MS) {
-        appModeSwitch(APP_MODE_SLEEP);
+        if (APP_MODE_SLEEP != appModeGetCurrent()) {
+            appModeSwitch(APP_MODE_SLEEP);
+        }
     }
 }
 
@@ -164,9 +166,8 @@ int main()
     }
     
     // TODO: O.T add English assets
-    // TODO: O.T. Implement indication module (e.g. LED or screen feedback)
-    // TODO: O.T add idle timeout and sleep mode
     // TODO: O.T fix display flickering during audio playback
+    // TODO: O.T remove unnecessary LEDs
 
     while(1)
     {
