@@ -46,8 +46,8 @@ static void clearStatusCircle_cb(lv_timer_t *t);
 static void showWriteStatus(bool success);
 static void updateLanguageListHighlight(void);
 static void loadLetterList(const char* languageName);
-static void processLanguageMenuInput(Key key, KeyState event);
-static void processLettersMenuInput(Key key, KeyState event);
+static void processLanguageMenuInput(Key key, KeyEvent event);
+static void processLettersMenuInput(Key key, KeyEvent event);
 static void guiInit(void);
 static void menuSwitch(Menu newMenu);
 static void processLanguageMenu(void);
@@ -232,20 +232,20 @@ static void menuLettersProcess(void)
     }
 }
 
-static void processLanguageMenuInput(Key key, KeyState event)
+static void processLanguageMenuInput(Key key, KeyEvent event)
 {
     switch (key) {
     case KEY_LEFT:
-        if (KEY_STATE_HOLD == event) {
+        if (KEY_EVENT_HOLD == event) {
             appModeSwitch(APP_MODE_MENU);
-        } else if (KEY_STATE_PRESSED == event) {
+        } else if (KEY_EVENT_SHORT_PRESS == event) {
             if (menuLanguage.selectedLang) {
                 menuSwitch(MENU_LETTERS);
             }
         }
         break;
     case KEY_RIGHT:
-        if (KEY_STATE_PRESSED == event) {
+        if (KEY_EVENT_SHORT_PRESS == event) {
             if (menuLanguage.selectedLang && menuLanguage.selectedLang->next) {
                 menuLanguage.selectedLang = menuLanguage.selectedLang->next;
             } else if (menuLanguage.langListHead) {
@@ -292,13 +292,13 @@ void menuLanguageExit(void)
     }
 }
 
-void processLettersMenuInput(Key key, KeyState event)
+void processLettersMenuInput(Key key, KeyEvent event)
 {
     switch (key) {
     case KEY_LEFT:
-        if (KEY_STATE_HOLD == event) {
+        if (KEY_EVENT_HOLD == event) {
             menuSwitch(MENU_LANGUAGE);
-        } else if (KEY_STATE_PRESSED == event) {
+        } else if (KEY_EVENT_SHORT_PRESS == event) {
             if (menuLetter.selectedLetter && menuLetter.selectedLetter->prev) {
                 menuLetter.selectedLetter = menuLetter.selectedLetter->prev;
             } else if (menuLetter.letterListHead) {
@@ -312,7 +312,7 @@ void processLettersMenuInput(Key key, KeyState event)
         }
         break;
     case KEY_RIGHT:
-        if (KEY_STATE_PRESSED == event) {
+        if (KEY_EVENT_SHORT_PRESS == event) {
             if (menuLetter.selectedLetter && menuLetter.selectedLetter->next) {
                 menuLetter.selectedLetter = menuLetter.selectedLetter->next;
             } else if (menuLetter.letterListHead) {

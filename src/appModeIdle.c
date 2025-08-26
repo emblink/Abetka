@@ -4,9 +4,9 @@
 #include "mifareHal.h"
 #include "keyScan.h"
 
-static void processInput(Key key, KeyState event)
+static void processInput(Key key, KeyEvent event)
 {
-    if (KEY_STATE_PRESSED == event) {
+    if (KEY_EVENT_SHORT_PRESS == event) {
         appModeSwitch(APP_MODE_MENU);
     }
 }

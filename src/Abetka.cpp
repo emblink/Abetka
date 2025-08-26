@@ -166,8 +166,6 @@ int main()
     }
     
     // TODO: O.T add English assets
-    // TODO: O.T fix display flickering during audio playback
-    // TODO: O.T remove unnecessary LEDs
 
     while(1)
     {

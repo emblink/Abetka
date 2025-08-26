@@ -25,9 +25,9 @@ static const ModeAssets modeAssetsPath[MODE_COUNT] = {
 
 static void showMode(Mode mode);
 
-static void processInput(Key key, KeyState event)
+static void processInput(Key key, KeyEvent event)
 {
-    if (KEY_STATE_PRESSED != event) {
+    if (KEY_EVENT_SHORT_PRESS != event) {
         return;
     }
 

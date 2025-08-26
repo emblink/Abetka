@@ -3,14 +3,21 @@
 #include "pico/stdlib.h"
 #include "hardware/sync.h"
 #include "pinout.h"
+#include "general.h"
+
+typedef enum {
+    KEY_STATE_RELEASED = 0U,
+    KEY_STATE_PRESSED,
+    KEY_STATE_HOLD,
+} KeyState;
 
 typedef struct {
     const uint gpio;
     int32_t threshold;
-    uint32_t holdUs;
+    uint32_t pressMs;
     KeyState lastState;
+    bool holdHappend;
     KeyState currentState;
-    bool wasPressed;
 } KeyData;
 
 #define KEYSCAN_INTERVAL_US 500
@@ -46,25 +53,10 @@ bool keyScanTimercb(repeating_timer_t *t) {
         if (keys[key].threshold >= PRESS_THRESHOLD) {
             anyPressed = true;
             keys[key].threshold = PRESS_THRESHOLD;
-
-            // should mark it as pressed but not report yet, maybe it's a hold action
-            if (KEY_STATE_HOLD != keys[key].currentState) {
-                keys[key].wasPressed = true;
-                keys[key].holdUs += KEYSCAN_INTERVAL_US;
-                if (keys[key].holdUs >= HOLD_DURATION_US) {
-                    keys[key].currentState = KEY_STATE_HOLD;
-                    keys[key].holdUs = 0;
-                    keys[key].wasPressed = false;
-                }
-            }
+            keys[key].currentState = KEY_STATE_PRESSED;
         } else if (keys[key].threshold <= RELEASE_THRESHOLD) {
             keys[key].threshold = RELEASE_THRESHOLD;
-
-            if (keys[key].wasPressed) { // report short press after key release if hold didn't happend
-                keys[key].currentState = KEY_STATE_PRESSED;
-                keys[key].wasPressed = false;
-            }
-            keys[key].holdUs = 0;
+            keys[key].currentState = KEY_STATE_RELEASED;
         } else {
             anyPressed = true; // still bouncing
         }
@@ -90,7 +82,6 @@ static void keyInit(Key key)
 {
     keys[key].lastState = KEY_STATE_RELEASED;
     keys[key].currentState = KEY_STATE_RELEASED;
-    keys[key].holdUs = 0;
     keys[key].threshold = 0;
 
     uint gpio = keys[key].gpio;
@@ -122,7 +113,6 @@ bool keyScanIsKeyPressed(Key key)
 
     switch (keys[key].currentState) {
         case KEY_STATE_PRESSED:
-        case KEY_STATE_HOLD:
             return true;
         default:
             break;
@@ -152,20 +142,37 @@ void keyScanProcess()
 {
     struct {
         Key key;
-        KeyState state;
+        KeyEvent event;
     } pendingEvents[KEY_COUNT] = {0};
     int pendingEventCount = 0;
 
     uint32_t status = save_and_disable_interrupts();
     for (Key key = KEY_LEFT; key < KEY_COUNT; key++) {
         if (keys[key].currentState != keys[key].lastState) {
-            // Store the event for later processing outside of critical section
-            pendingEvents[pendingEventCount].key = key;
-            pendingEvents[pendingEventCount].state = keys[key].currentState;
-            pendingEventCount++;
-            keys[key].lastState = keys[key].currentState;
+
             if (KEY_STATE_PRESSED == keys[key].currentState) {
-                keys[key].currentState = KEY_STATE_RELEASED;
+                // This is the first time we've seen it pressed, start the hold timer
+                keys[key].pressMs = getTimeMs();
+            }
+            else if (KEY_STATE_RELEASED == keys[key].currentState) {
+                if (keys[key].lastState == KEY_STATE_PRESSED) {
+                    // It was a short press if it hasn't been held
+                    if ((getTimeMs() - keys[key].pressMs) < HOLD_DURATION_MS) {
+                        pendingEvents[pendingEventCount].key = key;
+                        pendingEvents[pendingEventCount].event = KEY_EVENT_SHORT_PRESS;
+                        pendingEventCount++;
+                    }
+                }
+            }
+            keys[key].lastState = keys[key].currentState;
+        }
+
+        if (KEY_STATE_PRESSED == keys[key].currentState) {
+            if (getTimeMs() - keys[key].pressMs >= HOLD_DURATION_MS) {
+                keys[key].lastState = KEY_STATE_HOLD;
+                pendingEvents[pendingEventCount].key = key;
+                pendingEvents[pendingEventCount].event = KEY_EVENT_HOLD;
+                pendingEventCount++;
             }
         }
     }
@@ -174,12 +181,12 @@ void keyScanProcess()
     // Process pending events *outside* the critical section
     for (size_t i = 0; i < pendingEventCount; i++) {
         if (keyCb) {
-            keyCb(pendingEvents[i].key, pendingEvents[i].state);
+            keyCb(pendingEvents[i].key, pendingEvents[i].event);
         }
+    }
 
-        if (idleCb) {
-            idleCb();
-        }
+    if (idleCb && !isAnyKeyPressed()) {
+        idleCb();
     }
 }
 

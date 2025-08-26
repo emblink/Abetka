@@ -15,18 +15,18 @@ const char *folderPath = "songs";
 
 static void showSongCoverArt(const char *songName);
 
-static void processInput(Key key, KeyState event)
+static void processInput(Key key, KeyEvent event)
 {
     switch (key) {
     case KEY_LEFT:
-        if (KEY_STATE_HOLD == event) {
+        if (KEY_EVENT_HOLD == event) {
             appModeSwitch(APP_MODE_MENU);
-        } else if (KEY_STATE_PRESSED == event) {
+        } else if (KEY_EVENT_SHORT_PRESS == event) {
             playSongFlag = true;
         }
         break;
     case KEY_RIGHT:
-        if (KEY_STATE_PRESSED == event) {
+        if (KEY_EVENT_SHORT_PRESS == event) {
             switchSongFlag = true;
         }
         break;
