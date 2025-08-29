@@ -154,12 +154,18 @@ void st7789_init(const struct st7789_config* config, uint16_t width, uint16_t he
     sleep_ms(10);
 
     // DISPON (29h): Display On
-    st7789_cmd(0x29, NULL, 0);
-    sleep_ms(10);
+    // st7789_cmd(0x29, NULL, 0);
+    // sleep_ms(10);
 
     if (st7789_cfg.gpio_bl > -1) {
         gpio_set_dir(st7789_cfg.gpio_bl, GPIO_OUT);
     }
+}
+
+void st7789_display_on(void)
+{
+    // DISPON (29h): Display On
+    st7789_cmd(0x29, NULL, 0);
 }
 
 void st7789_ramwr()

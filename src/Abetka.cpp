@@ -155,6 +155,8 @@ int main()
     lv_init();
     lv_tick_set_cb(getTimeMs);
     st7789_init(&lcd_config, lcd_width, lcd_height);
+    st7789_write(frameBuff, sizeof(frameBuff)); // update to avoid garbage on the screen
+    st7789_display_on();
     display = lv_st7789_create(
         lcd_width, lcd_height,
         LV_LCD_FLAG_NONE,

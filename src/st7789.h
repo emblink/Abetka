@@ -25,6 +25,7 @@ struct st7789_config {
 };
 
 void st7789_init(const struct st7789_config* config, uint16_t width, uint16_t height);
+void st7789_display_on(void);
 void st7789_cmd(uint8_t cmd, const uint8_t* data, size_t len);
 void st7789_write(const void* data, size_t len);
 void st7789_put(uint16_t pixel);
