@@ -16,6 +16,7 @@
 #include "sdCard.h"
 #include "pinout.h"
 #include "general.h"
+#include <pico/bootrom.h>
 
 // How to build without optimizations
 // cmake -DCMAKE_BUILD_TYPE=Debug -DPICO_DEOPTIMIZED_DEBUG=1 ..
@@ -118,6 +119,32 @@ static void st7789SendColorCb(lv_display_t * disp, const uint8_t * cmd, size_t c
     lv_display_flush_ready(disp);
 }
 
+static void checkBootloaderEnter(void)
+{
+    bool enterBootloader = keyScanGetKeyState(KEY_LEFT);
+    uint32_t timeout = 0;
+    #define BOOTLOADER_MODE_TIMEOUT_MS 1000
+    while (enterBootloader && timeout < BOOTLOADER_MODE_TIMEOUT_MS) {
+        enterBootloader = keyScanGetKeyState(KEY_LEFT);
+        timeout++;
+    }
+
+    if (enterBootloader) {
+        static lv_obj_t * label = NULL;
+        lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x000000), LV_PART_MAIN);
+        label = lv_label_create(lv_screen_active());
+        lv_obj_set_style_text_font(label, &lv_font_montserrat_14, LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(label, LV_OPA_COVER, LV_PART_MAIN);
+        lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+        lv_obj_set_style_bg_color(label, lv_color_make(0x00, 0x00, 0x00), LV_PART_MAIN); // green
+        lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), LV_PART_MAIN); // white text
+        lv_label_set_text(label, "USB Bootloader");
+        lv_timer_handler();
+        sleep_ms(250);
+        reset_usb_boot(0, 0);
+    }
+}
+
 int main()
 {
     tud_init(BOARD_TUD_RHPORT); // should be called before the stdio_init_all()
@@ -150,6 +177,7 @@ int main()
     if (batteryPercent <= 0) {
         appModeSwitch(APP_MODE_DISCHARGED);
     } else {
+        checkBootloaderEnter();
         bool enterWriteMode = false;
         uint32_t timeout = 0;
         #define WRITE_MODE_TIMEOUT_MS 2000
