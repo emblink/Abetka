@@ -185,7 +185,7 @@ void keyScanProcess()
         }
     }
 
-    if (idleCb && !isAnyKeyPressed()) {
+    if (idleCb && isAnyKeyPressed()) {
         idleCb();
     }
 }
