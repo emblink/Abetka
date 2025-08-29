@@ -63,21 +63,23 @@ static void idleTimeoutProcess(void)
 
 static void updateBatteryPercent()
 {
-    static lv_obj_t * batLabel = NULL; 
+    static lv_obj_t * batLabel = NULL;
     if (NULL == batLabel) {
         batLabel = lv_label_create(lv_layer_top()); // special layer over any other screen
         lv_obj_set_style_text_font(batLabel, &lv_font_montserrat_14, LV_PART_MAIN);
-        lv_obj_set_style_text_color(batLabel, lv_color_hex(0xffffff), LV_PART_MAIN);
-        lv_obj_set_style_bg_opa(batLabel, LV_OPA_50, LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(batLabel, LV_OPA_COVER, LV_PART_MAIN);
         lv_obj_align(batLabel, LV_ALIGN_TOP_RIGHT, 0, 0);
     }
 
     if (batteryPercent >= 70) {
         lv_obj_set_style_bg_color(batLabel, lv_color_make(0, 0x80, 0), LV_PART_MAIN); // green
+        lv_obj_set_style_text_color(batLabel, lv_color_hex(0xFFFFFF), LV_PART_MAIN); // white text
     } else if (batteryPercent >= 35) {
-        lv_obj_set_style_bg_color(batLabel, lv_color_make(0xC8, 0xFF, 0), LV_PART_MAIN); // yellow / green
+        lv_obj_set_style_bg_color(batLabel, lv_color_make(0xFF, 0xA5, 0x0), LV_PART_MAIN); // orange
+        lv_obj_set_style_text_color(batLabel, lv_color_hex(0x0), LV_PART_MAIN); // black text
     } else {
         lv_obj_set_style_bg_color(batLabel, lv_color_make(0xFF, 0, 0), LV_PART_MAIN); // red
+        lv_obj_set_style_text_color(batLabel, lv_color_hex(0xFFFFFF), LV_PART_MAIN); // white text
     }
 
     char batteryLableText[20] = {'\0'};
